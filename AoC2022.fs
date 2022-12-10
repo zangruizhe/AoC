@@ -185,3 +185,62 @@ module Day4 =
         |> AocInput.GetInput
         |> F2
         |> should equal 849
+
+// module Day5 =
+type Day5(output: ITestOutputHelper) =
+    do new AocInput.Converter(output) |> Console.SetOut
+    let ParseStack (input: string []) =
+        let stack = Array.init 9 (fun _ -> List.empty)
+
+        input
+        |> Array.iter (fun s ->
+            for i in [1..4..s.Length] do
+                if s[i] <> ' ' then
+                    let j = i/4
+                    stack[j]<-  stack[j] @ [s[i]]
+            )
+        stack
+
+    let ParseCommand (input:string[]) =
+        input
+        |> Array.map(fun s -> s.Split(' ') |> (fun x -> int x[1], int x[3]-1, int x[5]-1))
+
+    let ExeCommand (input:string[]) take_f=
+        let tmp_st = input |> Array.takeWhile (fun s -> s.Length > 0)
+        let stack=
+            tmp_st[..tmp_st.Length-2] |> ParseStack
+        let command =
+            input[tmp_st.Length+1 ..] |> ParseCommand
+
+        command
+        |> Array.iter (fun (v, f, t)->
+            let take = stack[f] |> List.take v |> take_f
+            stack[f] <- stack[f] |> List.skip v
+            stack[t] <- take @ stack[t])
+
+        stack
+        |> Array.choose( fun s ->
+            match s with
+            | h::_ -> Some h
+            | [] -> None
+            )
+        |> String
+
+    let F1 (input: string []) : string =
+        ExeCommand input List.rev
+
+    let F2 (input: string []) : string =
+        ExeCommand input id
+
+
+    [<Fact>]
+    let ``Day 5`` () =
+        "2022_D5.txt"
+        |> AocInput.GetInput
+        |> F1
+        |> should equal "FJSRQCFTN"
+
+        "2022_D5.txt"
+        |> AocInput.GetInput
+        |> F2
+        |> should equal "CJVLJQPHS"
