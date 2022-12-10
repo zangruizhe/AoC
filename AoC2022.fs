@@ -255,9 +255,7 @@ module Day5 =
         |> F2
         |> should equal "CJVLJQPHS"
 
-type Day6(output: ITestOutputHelper) =
-    do new AocInput.Converter(output) |> Console.SetOut
-
+module Day6 =
     let GetIndex (input: string []) (req: int) : int =
         let s = input.[0]
         let mem = Dictionary<char, int>()
