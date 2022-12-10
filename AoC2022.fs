@@ -303,3 +303,104 @@ module Day6 =
         |> AocInput.GetInput
         |> F2
         |> should equal 2178
+
+module Day7 =
+    type FileSystem =
+        | DIR of name: string
+        | FILE of name: string * size: int
+
+    type Token =
+        | CD of string
+        | LS
+        | File of FileSystem
+
+    type TokenStream = Token list
+
+    let DirTree =
+        Dictionary<string, FileSystem list>()
+
+    let Mem = Dictionary<string, int>()
+
+    let Tokenize (input: string []) : TokenStream =
+        input
+        |> Seq.map (fun s ->
+            let tmp = s.Split [| ' ' |]
+
+            if tmp[0] = "$" then
+                if tmp[1] = "ls" then LS else CD tmp[2]
+            else if tmp[0] = "dir" then
+                DIR tmp[1] |> File
+            else
+                (tmp[1], int tmp[0]) |> FILE |> File)
+        |> Seq.toList
+
+    let rec Parse (folder: string list) (tokens: TokenStream) =
+        match tokens with
+        | CD dir :: LS :: t -> Parse (dir :: folder) t
+        | CD ".." :: t -> Parse folder.Tail t
+        | File s :: t ->
+            let path =
+                String.Join("/", folder |> List.rev |> Seq.ofList)
+
+            match DirTree.ContainsKey path with
+            | true -> DirTree[path] <- s :: DirTree[path]
+            | false -> DirTree.Add(path, [ s ])
+
+            Parse folder t
+        | _ -> ()
+
+
+    let rec GetSize (dir: string) : int =
+        match DirTree.ContainsKey(dir) with
+        | true ->
+            DirTree[dir]
+            |> List.fold
+                (fun pre f ->
+                    match f with
+                    | DIR d ->
+                        let path = dir + "/" + d
+                        let tmp = GetSize(path)
+                        Mem.Add(path, tmp)
+                        tmp
+                    | FILE (_, size) -> size
+                    |> (+) pre)
+                0
+        | false -> failwith $"can not find dir:{dir}"
+
+    let F1 (input: string []) : int =
+        DirTree.Clear()
+        Mem.Clear()
+
+        input |> Tokenize |> Parse []
+
+        GetSize "/" |> ignore
+
+        Mem
+        |> Seq.sumBy (fun i -> if i.Value <= 100000 then i.Value else 0)
+
+    let F2 (input: string []) : int =
+        DirTree.Clear()
+        Mem.Clear()
+        input |> Tokenize |> Parse []
+
+        Mem["/"] <- GetSize "/"
+
+        let need_free =
+            Mem["/"] - (70000000 - 30000000)
+
+        Mem
+        |> Seq.sortBy (fun i -> i.Value)
+        |> Seq.find (fun i -> i.Value >= need_free)
+        |> (fun i -> i.Value)
+
+    [<Fact>]
+    let ``Day 7`` () =
+        "2022_D7.txt"
+        |> AocInput.GetInput
+        |> F1
+        |> should equal 1477771
+
+        "2022_D7.txt"
+        |> AocInput.GetInput
+        |> F2
+        |> should equal 3579501
