@@ -404,3 +404,79 @@ module Day7 =
         |> AocInput.GetInput
         |> F2
         |> should equal 3579501
+
+type Day8(output: ITestOutputHelper) =
+    do new AocInput.Converter(output) |> Console.SetOut
+
+    let CalculateMinOf4DirHigh (matrix: int [] []) : int [] [] =
+        let rst =
+            Array.init matrix.Length (fun i -> Array.init matrix[0].Length (fun j -> matrix[i][j]))
+        matrix |> Array.iter (printfn "%A")
+
+        let CalRow i index =
+            index
+            |> Array.skip 1
+            |> Array.fold
+                (fun state a ->
+                    rst[i][a] <- min (rst[i][a]) state
+                    max (matrix[i][a]) state)
+                (matrix[i][index[0]])
+            |> ignore
+
+        let CalCol i index =
+            index
+            |> Array.skip 1
+            |> Array.fold
+                (fun state a ->
+                    rst[a][i] <- min (rst[a][i]) state
+                    max (matrix[a][i]) state)
+                (matrix[index[0]][i])
+            |> ignore
+
+        for i = 1 to (matrix.Length - 2) do
+            let index = [| 0 .. matrix[0].Length - 1 |]
+            index |> CalRow i
+            index |> Array.rev |> CalRow i
+
+        printfn "====="
+        rst |> Array.iter (printfn "%A")
+        for i = 1 to (matrix[0].Length - 2) do
+            let index = [| 0 .. matrix.Length - 1 |]
+            index |> CalCol i
+            index |> Array.rev |> CalCol i
+
+        printfn "====="
+        rst |> Array.iter (printfn "%A")
+        rst
+
+    let ParseInputToMatrix (input: string []) : int [] [] =
+        input
+        |> Array.map (fun s ->
+            s
+            |> Seq.map (fun c -> int c - int '0')
+            |> Seq.toArray)
+
+    let F1 (input: string []) : int =
+        let matrix = ParseInputToMatrix input
+        let cal_high = CalculateMinOf4DirHigh matrix
+
+        [ for i = 1 to matrix.Length - 2 do
+              for j = 1 to matrix[0].Length - 2 do
+                  if matrix[i][j] > cal_high[i][j] then
+                      yield 1 ]
+        |> List.sum
+        |> (+) (2 * matrix.Length + (matrix[0].Length - 2) * 2)
+
+    let F2 (input: string []) : int = 0
+
+    [<Fact>]
+    let ``Day 8`` () =
+        "2022_D8.txt"
+        |> AocInput.GetInput
+        |> F1
+        |> should equal 21
+
+        "2022_D8.txt"
+        |> AocInput.GetInput
+        |> F2
+        |> should equal 3579501
