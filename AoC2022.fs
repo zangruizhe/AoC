@@ -5,6 +5,7 @@ open System
 open FsUnit
 open Xunit
 open Xunit.Abstractions
+open System.Collections.Generic
 
 type Day1(output: ITestOutputHelper) =
     do new AocInput.Converter(output) |> Console.SetOut
@@ -253,3 +254,54 @@ module Day5 =
         |> AocInput.GetInput
         |> F2
         |> should equal "CJVLJQPHS"
+
+type Day6(output: ITestOutputHelper) =
+    do new AocInput.Converter(output) |> Console.SetOut
+
+    let GetIndex (input: string []) (req: int) : int =
+        let s = input.[0]
+        let mem = Dictionary<char, int>()
+
+        let rec Window l r =
+            if r >= s.Length then
+                r
+            else if r - l = req then
+                if mem.Count = req then
+                    r
+                else
+                    mem[s[l]] <- mem[s[l]] - 1
+
+                    if mem[s[l]] = 0 then
+                        mem.Remove(s[l]) |> ignore
+
+                    Window (l + 1) r
+            else
+                let c = s[r]
+
+                match mem.ContainsKey(c) with
+                | true -> mem[c] <- mem[c] + 1
+                | false -> mem.Add(c, 1)
+
+                Window l (r + 1)
+
+        Window 0 0
+
+    let F1 (input: string []) : int = GetIndex input 4
+
+    let F2 (input: string []) : int =
+        let i1 = GetIndex input 4
+
+        i1
+        + GetIndex (input.[0][i1..] |> Array.singleton) 14
+
+    [<Fact>]
+    let ``Day 6`` () =
+        "2022_D6.txt"
+        |> AocInput.GetInput
+        |> F1
+        |> should equal 1578
+
+        "2022_D6.txt"
+        |> AocInput.GetInput
+        |> F2
+        |> should equal 2178
