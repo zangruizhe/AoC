@@ -165,16 +165,13 @@ module Day4 =
     let F1 (input: string []) : int =
         input
         |> Parse
-        |> Array.filter (fun num ->
-            (num[0] <= num[2] && num[1] >= num[3])
-            || (num[2] <= num[0] && num[3] >= num[1]))
-        |> Array.length
+        |> Array.sumBy (fun num ->
+            if (num[0] <= num[2] && num[1] >= num[3]) || (num[2] <= num[0] && num[3] >= num[1]) then 1 else 0)
 
     let F2 (input: string []) : int =
         input
         |> Parse
-        |> Array.filter (fun num -> num[2] <= num[1] && num[3] >= num[0])
-        |> Array.length
+        |> Array.sumBy (fun num -> if num[2] <= num[1] && num[3] >= num[0] then 1 else 0)
 
 
     [<Fact>]
