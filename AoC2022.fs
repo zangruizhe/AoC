@@ -562,9 +562,8 @@ module Day9 =
         |> Array.length
 
     let F2 (input: string []) : int =
-        let head_pos = input |> GetHeadPos
-
-        head_pos
+        input
+        |> GetHeadPos
         |> Array.fold
             (fun (rst, tail) head ->
                 let next =
