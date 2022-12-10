@@ -36,7 +36,10 @@ type OP =
     | Down of int
     | Up of int
 
-type Position = { Horizontal: int; Depth: int; Aim: int }
+type Position =
+    { Horizontal: int
+      Depth: int
+      Aim: int }
 
 let GetOP (op: string) (v: int) =
     match op with
@@ -47,7 +50,10 @@ let GetOP (op: string) (v: int) =
 
 let ApplyOP (op: OP) (pos: Position) =
     match op with
-    | Forward i -> { pos with Horizontal = pos.Horizontal + i; Depth = pos.Depth + pos.Aim * i }
+    | Forward i ->
+        { pos with
+            Horizontal = pos.Horizontal + i
+            Depth = pos.Depth + pos.Aim * i }
     | Up i -> { pos with Aim = pos.Aim - i }
     | Down i -> { pos with Aim = pos.Aim + i }
 
@@ -241,11 +247,11 @@ module Day4 =
 
                     match Array.tryFindIndex ((=) v) l[0 .. len - 1] with
                     | Some k ->
-                        boards[i][j][k] <- -1
-                        boards[i][j][len] <- boards[i][j][len] - 1
-                        boards[i][len][k] <- boards[i][len][k] - 1
+                        boards[i].[j][k] <- -1
+                        boards[i].[j][len] <- boards[i].[j][len] - 1
+                        boards[i].[len][k] <- boards[i].[len][k] - 1
 
-                        if boards[i][j][len] = 0 || boards[i][len][k] = 0 then
+                        if boards[i].[j][len] = 0 || boards[i].[len][k] = 0 then
                             win[i] <- true
 
                             if (win |> Array.filter id |> Array.length) = boards.Length then
