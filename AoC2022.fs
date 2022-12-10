@@ -10,30 +10,19 @@ open System.Collections.Generic
 type Day1(output: ITestOutputHelper) =
     do new AocInput.Converter(output) |> Console.SetOut
 
-    let GetCal (input: string) : int [] =
-        input.Split("\n\n")
-        |> Array.map (fun s -> s.Split("\n") |> Seq.sumBy int)
+    let GetCal (input: string) : int[] =
+        input.Split("\n\n") |> Array.map (fun s -> s.Split("\n") |> Seq.sumBy int)
 
     let F1 (input: string) : int = input |> GetCal |> Array.max
 
     let F2 (input: string) : int =
-        input
-        |> GetCal
-        |> Array.sortByDescending id
-        |> Array.take 3
-        |> Array.sum
+        input |> GetCal |> Array.sortByDescending id |> Array.take 3 |> Array.sum
 
     [<Fact>]
     let ``Day 1`` () =
-        "2022_D1.txt"
-        |> AocInput.GetInputAsText
-        |> F1
-        |> should equal 72511
+        "2022_D1.txt" |> AocInput.GetInputAsText |> F1 |> should equal 72511
 
-        "2022_D1.txt"
-        |> AocInput.GetInputAsText
-        |> F2
-        |> should equal 212117
+        "2022_D1.txt" |> AocInput.GetInputAsText |> F2 |> should equal 212117
 
 
 module Day2 =
@@ -63,7 +52,7 @@ module Day2 =
         elif a = 'Y' then Paper
         else Scissor
 
-    let F1 (input: string []) : int =
+    let F1 (input: string[]) : int =
         let GameScore (my: GameOP) (other: GameOP) : int =
             match my, other with
             | Rock, Scissor
@@ -83,7 +72,7 @@ module Day2 =
         |> Array.map (fun (my, other) -> GameScore my other + ChoiceScore my)
         |> Array.sum
 
-    let F2 (input: string []) : int =
+    let F2 (input: string[]) : int =
         let GameScore (rst: GameResult) (other: GameOP) : int =
             match rst, other with
             | Win, Scissor
@@ -116,15 +105,9 @@ module Day2 =
 
     [<Fact>]
     let ``Day 2`` () =
-        "2022_D2.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 11603
+        "2022_D2.txt" |> AocInput.GetInput |> F1 |> should equal 11603
 
-        "2022_D2.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 12725
+        "2022_D2.txt" |> AocInput.GetInput |> F2 |> should equal 12725
 
 module Day3 =
     let GetPrior (c: char) =
@@ -133,13 +116,13 @@ module Day3 =
         else
             int c - int 'A' + 27
 
-    let F1 (input: string []) : int =
+    let F1 (input: string[]) : int =
         input
         |> Seq.map (fun s -> s |> Seq.splitInto 2 |> Seq.map Set.ofSeq)
         |> Seq.collect Set.intersectMany
         |> Seq.sumBy GetPrior
 
-    let F2 (input: string []) : int =
+    let F2 (input: string[]) : int =
         input
         |> Seq.map Set.ofSeq
         |> Seq.chunkBySize 3
@@ -148,57 +131,38 @@ module Day3 =
 
     [<Fact>]
     let ``Day 3`` () =
-        "2022_D3.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 7742
+        "2022_D3.txt" |> AocInput.GetInput |> F1 |> should equal 7742
 
-        "2022_D3.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 2276
+        "2022_D3.txt" |> AocInput.GetInput |> F2 |> should equal 2276
 
 module Day4 =
-    let Parse (input: string []) =
-        input
-        |> Array.map (fun s -> s.Split([| '-'; ',' |]) |> Array.map int)
+    let Parse (input: string[]) =
+        input |> Array.map (fun s -> s.Split([| '-'; ',' |]) |> Array.map int)
 
-    let F1 (input: string []) : int =
+    let F1 (input: string[]) : int =
         input
         |> Parse
         |> Array.sumBy (fun num ->
-            if (num[0] <= num[2] && num[1] >= num[3])
-               || (num[2] <= num[0] && num[3] >= num[1]) then
+            if (num[0] <= num[2] && num[1] >= num[3]) || (num[2] <= num[0] && num[3] >= num[1]) then
                 1
             else
                 0)
 
-    let F2 (input: string []) : int =
+    let F2 (input: string[]) : int =
         input
         |> Parse
-        |> Array.sumBy (fun num ->
-            if num[2] <= num[1] && num[3] >= num[0] then
-                1
-            else
-                0)
+        |> Array.sumBy (fun num -> if num[2] <= num[1] && num[3] >= num[0] then 1 else 0)
 
 
     [<Fact>]
     let ``Day 4`` () =
-        "2022_D4.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 487
+        "2022_D4.txt" |> AocInput.GetInput |> F1 |> should equal 487
 
-        "2022_D4.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 849
+        "2022_D4.txt" |> AocInput.GetInput |> F2 |> should equal 849
 
 module Day5 =
-    let ParseStack (input: string []) =
-        let stack =
-            Array.init 9 (fun _ -> List.empty)
+    let ParseStack (input: string[]) =
+        let stack = Array.init 9 (fun _ -> List.empty)
 
         input
         |> Array.map (Seq.chunkBySize 4)
@@ -210,21 +174,16 @@ module Day5 =
 
         stack
 
-    let ParseCommand (input: string []) =
+    let ParseCommand (input: string[]) =
         input
-        |> Array.map (fun s ->
-            s.Split(' ')
-            |> (fun x -> int x[1], int x[3] - 1, int x[5] - 1))
+        |> Array.map (fun s -> s.Split(' ') |> (fun x -> int x[1], int x[3] - 1, int x[5] - 1))
 
-    let ExeCommand (input: string []) take_f =
-        let split_i =
-            input |> Array.findIndex (fun s -> s.Length = 0)
+    let ExeCommand (input: string[]) take_f =
+        let split_i = input |> Array.findIndex (fun s -> s.Length = 0)
 
-        let stack =
-            input[.. split_i - 2] |> ParseStack
+        let stack = input[.. split_i - 2] |> ParseStack
 
-        let command =
-            input[split_i + 1 ..] |> ParseCommand
+        let command = input[split_i + 1 ..] |> ParseCommand
 
         command
         |> Array.iter (fun (v, f, t) ->
@@ -239,24 +198,18 @@ module Day5 =
             | [] -> None)
         |> String
 
-    let F1 (input: string []) : string = ExeCommand input List.rev
+    let F1 (input: string[]) : string = ExeCommand input List.rev
 
-    let F2 (input: string []) : string = ExeCommand input id
+    let F2 (input: string[]) : string = ExeCommand input id
 
     [<Fact>]
     let ``Day 5`` () =
-        "2022_D5.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal "FJSRQCFTN"
+        "2022_D5.txt" |> AocInput.GetInput |> F1 |> should equal "FJSRQCFTN"
 
-        "2022_D5.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal "CJVLJQPHS"
+        "2022_D5.txt" |> AocInput.GetInput |> F2 |> should equal "CJVLJQPHS"
 
 module Day6 =
-    let GetIndex (input: string []) (req: int) : int =
+    let GetIndex (input: string[]) (req: int) : int =
         let s = input.[0]
         let mem = Dictionary<char, int>()
 
@@ -284,25 +237,18 @@ module Day6 =
 
         Window 0 0
 
-    let F1 (input: string []) : int = GetIndex input 4
+    let F1 (input: string[]) : int = GetIndex input 4
 
-    let F2 (input: string []) : int =
+    let F2 (input: string[]) : int =
         let i1 = GetIndex input 4
 
-        i1
-        + GetIndex (input.[0][i1..] |> Array.singleton) 14
+        i1 + GetIndex (input.[0][i1..] |> Array.singleton) 14
 
     [<Fact>]
     let ``Day 6`` () =
-        "2022_D6.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 1578
+        "2022_D6.txt" |> AocInput.GetInput |> F1 |> should equal 1578
 
-        "2022_D6.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 2178
+        "2022_D6.txt" |> AocInput.GetInput |> F2 |> should equal 2178
 
 module Day7 =
     type FileSystem =
@@ -316,12 +262,11 @@ module Day7 =
 
     type TokenStream = Token list
 
-    let DirTree =
-        Dictionary<string, FileSystem list>()
+    let DirTree = Dictionary<string, FileSystem list>()
 
     let Mem = Dictionary<string, int>()
 
-    let Tokenize (input: string []) : TokenStream =
+    let Tokenize (input: string[]) : TokenStream =
         input
         |> Seq.map (fun s ->
             let tmp = s.Split [| ' ' |]
@@ -339,8 +284,7 @@ module Day7 =
         | CD dir :: LS :: t -> Parse (dir :: folder) t
         | CD ".." :: t -> Parse folder.Tail t
         | File s :: t ->
-            let path =
-                String.Join("/", folder |> List.rev |> Seq.ofList)
+            let path = String.Join("/", folder |> List.rev |> Seq.ofList)
 
             match DirTree.ContainsKey path with
             | true -> DirTree[path] <- s :: DirTree[path]
@@ -367,7 +311,7 @@ module Day7 =
                 0
         | false -> failwith $"can not find dir:{dir}"
 
-    let F1 (input: string []) : int =
+    let F1 (input: string[]) : int =
         DirTree.Clear()
         Mem.Clear()
 
@@ -375,18 +319,16 @@ module Day7 =
 
         GetSize "/" |> ignore
 
-        Mem
-        |> Seq.sumBy (fun i -> if i.Value <= 100000 then i.Value else 0)
+        Mem |> Seq.sumBy (fun i -> if i.Value <= 100000 then i.Value else 0)
 
-    let F2 (input: string []) : int =
+    let F2 (input: string[]) : int =
         DirTree.Clear()
         Mem.Clear()
         input |> Tokenize |> Parse []
 
         Mem["/"] <- GetSize "/"
 
-        let need_free =
-            Mem["/"] - (70000000 - 30000000)
+        let need_free = Mem["/"] - (70000000 - 30000000)
 
         Mem
         |> Seq.sortBy (fun i -> i.Value)
@@ -395,18 +337,12 @@ module Day7 =
 
     [<Fact>]
     let ``Day 7`` () =
-        "2022_D7.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 1477771
+        "2022_D7.txt" |> AocInput.GetInput |> F1 |> should equal 1477771
 
-        "2022_D7.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 3579501
+        "2022_D7.txt" |> AocInput.GetInput |> F2 |> should equal 3579501
 
 module Day8 =
-    let CalculateMinOf4DirHigh (matrix: int [] []) : int [] [] =
+    let CalculateMinOf4DirHigh (matrix: int[][]) : int[][] =
         let rst =
             Array.init matrix.Length (fun i -> Array.init matrix[0].Length (fun j -> matrix[i][j]))
 
@@ -442,14 +378,11 @@ module Day8 =
 
         rst
 
-    let ParseInputToMatrix (input: string []) : int [] [] =
+    let ParseInputToMatrix (input: string[]) : int[][] =
         input
-        |> Array.map (fun s ->
-            s
-            |> Seq.map (fun c -> int c - int '0')
-            |> Seq.toArray)
+        |> Array.map (fun s -> s |> Seq.map (fun c -> int c - int '0') |> Seq.toArray)
 
-    let F1 (input: string []) : int =
+    let F1 (input: string[]) : int =
         let matrix = ParseInputToMatrix input
         let cal_high = CalculateMinOf4DirHigh matrix
 
@@ -466,11 +399,8 @@ module Day8 =
         | Left
         | Right
 
-    let rec WalkInMatrix (matrix: int [] []) start_p dir i j cur : int =
-        if i < 0
-           || i >= matrix.Length
-           || j < 0
-           || j >= matrix[0].Length then
+    let rec WalkInMatrix (matrix: int[][]) start_p dir i j cur : int =
+        if i < 0 || i >= matrix.Length || j < 0 || j >= matrix[0].Length then
             cur
         elif matrix[i][j] >= start_p then
             cur + 1
@@ -481,7 +411,7 @@ module Day8 =
             | Left -> WalkInMatrix matrix start_p dir i (j - 1) (cur + 1)
             | Right -> WalkInMatrix matrix start_p dir i (j + 1) (cur + 1)
 
-    let F2 (input: string []) : int =
+    let F2 (input: string[]) : int =
         let matrix = ParseInputToMatrix input
 
         [ for i = 1 to matrix.Length - 2 do
@@ -497,15 +427,9 @@ module Day8 =
 
     [<Fact>]
     let ``Day 8`` () =
-        "2022_D8.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 1814
+        "2022_D8.txt" |> AocInput.GetInput |> F1 |> should equal 1814
 
-        "2022_D8.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 330786
+        "2022_D8.txt" |> AocInput.GetInput |> F2 |> should equal 330786
 
 module Day9 =
     let GetNextT (tr, tc) (hr, hc) : int * int =
@@ -517,78 +441,46 @@ module Day9 =
         else
             tr + compare hr tr, tc + compare hc tc
 
-    let GetTailPos (head: (int * int) []) =
-        head
-        |> Array.mapFold
-            (fun (tr, tc) (hr, hc) ->
-                let t = GetNextT (tr, tc) (hr, hc)
-                t, t)
-            (0, 0)
-        |> fst
-
-    let GetHeadPos (input: string []) =
+    let GetHeadPos (input: string[]) =
         input
         |> Array.mapFold
             (fun (hr, hc) s ->
                 let tmp = s.Split ' '
 
-                match tmp[0], (int tmp[1]) with
-                | "L", v ->
-                    [| for i in 1..v do
-                           yield (hr, hc - i) |],
-                    (hr, hc - v)
-                | "R", v ->
-                    [| for i in 1..v do
-                           yield (hr, hc + i) |],
-                    (hr, hc + v)
-                | "U", v ->
-                    [| for i in 1..v do
-                           yield (hr - i, hc) |],
-                    (hr - v, hc)
-                | "D", v ->
-                    [| for i in 1..v do
-                           yield (hr + i, hc) |],
-                    (hr + v, hc)
-                | _ -> failwith $"wrong op:{s}")
+                let op_r, op_c =
+                    match tmp[0] with
+                    | "L" -> (0, -1)
+                    | "R" -> (0, 1)
+                    | "U" -> (-1, 0)
+                    | "D" -> (1, 0)
+                    | _ -> failwith $"wrong op:{s}"
+
+                [| 1 .. int tmp[1] |]
+                |> Array.mapFold
+                    (fun (r, c) _ ->
+                        let h = (r + op_r, c + op_c)
+                        h, h)
+                    (hr, hc))
             (0, 0)
         |> fst
         |> Array.concat
 
-    let F1 (input: string []) : int =
-        input
-        |> GetHeadPos
-        |> GetTailPos
-        |> Array.distinct
-        |> Array.length
-
-    let F2 (input: string []) : int =
-        input
-        |> GetHeadPos
+    let GetTailPos n head_pos =
+        head_pos
         |> Array.fold
             (fun (rst, tail) head ->
-                let next =
-                    tail
-                    |> Array.mapFold
-                        (fun pre t ->
-                            let t = GetNextT t pre
-                            t, t)
-                        head
-                    |> fst
-
+                let next = tail |> Array.scan (fun pre t -> GetNextT t pre) head |> Array.tail
                 (Array.last next) :: rst, next)
-            ([], Array.init 9 (fun _ -> (0, 0)))
+            ([], Array.replicate n (0, 0))
         |> fst
-        |> List.distinct
-        |> List.length
+
+    let F1 (input: string[]) : int =
+        input |> GetHeadPos |> GetTailPos 1 |> Seq.distinct |> Seq.length
+
+    let F2 (input: string[]) : int =
+        input |> GetHeadPos |> GetTailPos 9 |> Seq.distinct |> Seq.length
 
     [<Fact>]
     let ``Day 9`` () =
-        "2022_D9.txt"
-        |> AocInput.GetInput
-        |> F1
-        |> should equal 6067
-
-        "2022_D9.txt"
-        |> AocInput.GetInput
-        |> F2
-        |> should equal 2471
+        "2022_D9.txt" |> AocInput.GetInput |> F1 |> should equal 6067
+        "2022_D9.txt" |> AocInput.GetInput |> F2 |> should equal 2471
