@@ -405,13 +405,10 @@ module Day7 =
         |> F2
         |> should equal 3579501
 
-type Day8(output: ITestOutputHelper) =
-    do new AocInput.Converter(output) |> Console.SetOut
-
+module Day8 =
     let CalculateMinOf4DirHigh (matrix: int [] []) : int [] [] =
         let rst =
             Array.init matrix.Length (fun i -> Array.init matrix[0].Length (fun j -> matrix[i][j]))
-        matrix |> Array.iter (printfn "%A")
 
         let CalRow i index =
             index
@@ -438,15 +435,11 @@ type Day8(output: ITestOutputHelper) =
             index |> CalRow i
             index |> Array.rev |> CalRow i
 
-        printfn "====="
-        rst |> Array.iter (printfn "%A")
         for i = 1 to (matrix[0].Length - 2) do
             let index = [| 0 .. matrix.Length - 1 |]
             index |> CalCol i
             index |> Array.rev |> CalCol i
 
-        printfn "====="
-        rst |> Array.iter (printfn "%A")
         rst
 
     let ParseInputToMatrix (input: string []) : int [] [] =
@@ -467,16 +460,136 @@ type Day8(output: ITestOutputHelper) =
         |> List.sum
         |> (+) (2 * matrix.Length + (matrix[0].Length - 2) * 2)
 
-    let F2 (input: string []) : int = 0
+    type DIR =
+        | Up
+        | Down
+        | Left
+        | Right
+
+    let rec WalkInMatrix (matrix: int [] []) start_p dir i j cur : int =
+        if i < 0
+           || i >= matrix.Length
+           || j < 0
+           || j >= matrix[0].Length then
+            cur
+        elif matrix[i][j] >= start_p then
+            cur + 1
+        else
+            match dir with
+            | Up -> WalkInMatrix matrix start_p dir (i - 1) j (cur + 1)
+            | Down -> WalkInMatrix matrix start_p dir (i + 1) j (cur + 1)
+            | Left -> WalkInMatrix matrix start_p dir i (j - 1) (cur + 1)
+            | Right -> WalkInMatrix matrix start_p dir i (j + 1) (cur + 1)
+
+    let F2 (input: string []) : int =
+        let matrix = ParseInputToMatrix input
+
+        [ for i = 1 to matrix.Length - 2 do
+              for j = 1 to matrix[0].Length - 2 do
+                  yield
+                      [ WalkInMatrix matrix (matrix[i][j]) Up (i - 1) j 0
+                        WalkInMatrix matrix (matrix[i][j]) Down (i + 1) j 0
+                        WalkInMatrix matrix (matrix[i][j]) Left i (j - 1) 0
+                        WalkInMatrix matrix (matrix[i][j]) Right i (j + 1) 0 ]
+                      |> List.reduce (*) ]
+        |> List.max
+
 
     [<Fact>]
     let ``Day 8`` () =
         "2022_D8.txt"
         |> AocInput.GetInput
         |> F1
-        |> should equal 21
+        |> should equal 1814
 
         "2022_D8.txt"
         |> AocInput.GetInput
         |> F2
-        |> should equal 3579501
+        |> should equal 330786
+
+module Day9 =
+    let GetNextT (tr, tc) (hr, hc) : int * int =
+        let r = abs (tr - hr)
+        let c = abs (tc - hc)
+
+        if r <= 1 && c <= 1 then
+            (tr, tc)
+        else
+            tr + compare hr tr, tc + compare hc tc
+
+    let GetTailPos (head: (int * int) []) =
+        head
+        |> Array.mapFold
+            (fun (tr, tc) (hr, hc) ->
+                let t = GetNextT (tr, tc) (hr, hc)
+                t, t)
+            (0, 0)
+        |> fst
+
+    let GetHeadPos (input: string []) =
+        input
+        |> Array.mapFold
+            (fun (hr, hc) s ->
+                let tmp = s.Split ' '
+
+                match tmp[0], (int tmp[1]) with
+                | "L", v ->
+                    [| for i in 1..v do
+                           yield (hr, hc - i) |],
+                    (hr, hc - v)
+                | "R", v ->
+                    [| for i in 1..v do
+                           yield (hr, hc + i) |],
+                    (hr, hc + v)
+                | "U", v ->
+                    [| for i in 1..v do
+                           yield (hr - i, hc) |],
+                    (hr - v, hc)
+                | "D", v ->
+                    [| for i in 1..v do
+                           yield (hr + i, hc) |],
+                    (hr + v, hc)
+                | _ -> failwith $"wrong op:{s}")
+            (0, 0)
+        |> fst
+        |> Array.concat
+
+    let F1 (input: string []) : int =
+        input
+        |> GetHeadPos
+        |> GetTailPos
+        |> Array.distinct
+        |> Array.length
+
+    let F2 (input: string []) : int =
+        let head_pos = input |> GetHeadPos
+
+        head_pos
+        |> Array.fold
+            (fun (rst, tail) head ->
+                let next =
+                    tail
+                    |> Array.mapFold
+                        (fun pre t ->
+                            let t = GetNextT t pre
+                            t, t)
+                        head
+                    |> fst
+
+                (Array.last next) :: rst, next)
+            ([], Array.init 9 (fun _ -> (0, 0)))
+        |> fst
+        |> List.distinct
+        |> List.length
+
+    [<Fact>]
+    let ``Day 9`` () =
+        "2022_D9.txt"
+        |> AocInput.GetInput
+        |> F1
+        |> should equal 6067
+
+        "2022_D9.txt"
+        |> AocInput.GetInput
+        |> F2
+        |> should equal 2471
