@@ -134,29 +134,26 @@ type Day3(output: ITestOutputHelper) =
         else
             int c - int 'A' + 27
 
-    let F1 (input: string []) : int =
-        let GetShareItem (l: string) (r: string) =
-            let ls = Set.ofSeq l
-            let rs = Set.ofSeq r
-            Set.intersect ls rs |> Set.toArray |> Array.head
+    let GetShareItem (input: string []) =
+        input
+        |> Array.map (fun x -> x.ToCharArray() |> Set.ofArray)
+        |> Array.reduce (fun a b -> Set.intersect a b)
+        |> Set.toArray
+        |> Array.head
 
+    let F1 (input: string []) : int =
         input
         |> Array.map (fun s ->
-            GetShareItem s[0 .. s.Length / 2 - 1] s[s.Length / 2 ..]
+            [| s[0 .. s.Length / 2 - 1]
+               s[s.Length / 2 ..] |]
+            |> GetShareItem
             |> GetPrior)
         |> Array.sum
 
     let F2 (input: string []) : int =
-        let GetShareItem (l: string) (r: string) (m: string) =
-            (Set.ofSeq r)
-            |> Set.intersect (Set.ofSeq l)
-            |> Set.intersect (Set.ofSeq m)
-            |> Set.toArray
-            |> Array.head
-
         input
-        |> Array.splitInto (input.Length/3)
-        |> Array.map (fun s -> GetShareItem s[0] s[1] s[2] |> GetPrior)
+        |> Array.splitInto (input.Length / 3)
+        |> Array.map (fun s -> GetShareItem [| s[0]; s[1]; s[2] |] |> GetPrior)
         |> Array.sum
 
     [<Fact>]
