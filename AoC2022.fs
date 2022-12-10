@@ -132,24 +132,18 @@ module Day3 =
         else
             int c - int 'A' + 27
 
-    let GetShareItem input =
-        input
-        |> Seq.map Set.ofSeq
-        |> Set.intersectMany
-        |> Set.toArray
-        |> Array.head
-
     let F1 (input: string []) : int =
         input
-        |> Array.map (fun s -> s |> Seq.splitInto 2)
-        |> Array.map (fun s -> s |> GetShareItem |> GetPrior)
-        |> Array.sum
+        |> Seq.map (fun s -> s |> Seq.splitInto 2 |> Seq.map Set.ofSeq)
+        |> Seq.collect Set.intersectMany
+        |> Seq.sumBy GetPrior
 
     let F2 (input: string []) : int =
         input
-        |> Array.chunkBySize 3
-        |> Array.map (fun s -> s |> GetShareItem |> GetPrior)
-        |> Array.sum
+        |> Seq.map Set.ofSeq
+        |> Seq.chunkBySize 3
+        |> Seq.collect Set.intersectMany
+        |> Seq.sumBy GetPrior
 
     [<Fact>]
     let ``Day 3`` () =
