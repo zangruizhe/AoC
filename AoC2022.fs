@@ -484,3 +484,39 @@ module Day9 =
     let ``Day 9`` () =
         "2022_D9.txt" |> AocInput.GetInput |> F1 |> should equal 6067
         "2022_D9.txt" |> AocInput.GetInput |> F2 |> should equal 2471
+
+module Day10 =
+    let ParseInput (input: string[]) : int[] =
+        input
+        |> Array.fold
+            (fun (v, rst) s ->
+                let tmp = s.Split ' '
+
+                if tmp.Length = 2 then
+                    v + int tmp[1], [ v; v ] @ rst
+                else
+                    v, v :: rst
+
+                )
+            (1, [])
+        |> snd
+        |> List.rev
+        |> List.toArray
+
+    let F1 (input: string[]) : int =
+        let mem = ParseInput input |> Array.append [| 0 |]
+        [| 20..40..220 |] |> Array.map (fun i -> i * mem[i]) |> Array.sum
+
+    let F2 (input: string[]) =
+        input
+        |> ParseInput
+        |> Array.mapi (fun i v ->
+            let i = i % 40
+            if i >= v - 1 && i <= v + 1 then "#" else ".")
+        |> Array.splitInto 6
+        |> Array.iter (fun v -> printfn "%A" (String.concat "" v))
+    // Result is RBPARAGF
+
+    [<Fact>]
+    let ``Day 10`` () =
+        "2022_D10.txt" |> AocInput.GetInput |> F1 |> should equal 12740
