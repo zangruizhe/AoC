@@ -1,22 +1,10 @@
 module AocInput
 
-open System
 open System.IO
 open Xunit.Abstractions
 
-let RedirectConsole () =
-    let of_stream =
-        new FileStream("local.out", FileMode.Create, FileAccess.Write)
-
-    let sout = new StreamWriter(of_stream)
-    sout.AutoFlush <- true
-
-    Console.SetOut(sout)
-
 type Converter(output: ITestOutputHelper) =
     inherit TextWriter()
-
-    do RedirectConsole()
     override _.Encoding = stdout.Encoding
     override _.WriteLine message = output.WriteLine message
     override _.Write message = output.WriteLine message
@@ -28,13 +16,9 @@ let GetInput (file: string) =
     System.IO.File.ReadLines(__SOURCE_DIRECTORY__ + $"/data/{file}")
     |> Seq.toArray
 
-let GetOutputFile () =
-    let of_stream =
-        new FileStream(__SOURCE_DIRECTORY__ + "/data/local.out", FileMode.Create, FileAccess.Write)
-
-    let sout = new StreamWriter(of_stream)
-    sout.AutoFlush <- true
-    sout
+let GetInputAsText (file: string) =
+    let txt = System.IO.File.ReadAllText(__SOURCE_DIRECTORY__ + $"/data/{file}")
+    txt.Remove(txt.Length-1, 1)
 
 module Aoc2021 =
     let D1 =
