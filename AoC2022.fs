@@ -200,11 +200,12 @@ module Day5 =
             Array.init 9 (fun _ -> List.empty)
 
         input
+        |> Array.map (Seq.chunkBySize 4)
         |> Array.iter (fun s ->
-            for i in [ 1..4 .. s.Length ] do
-                if s[i] <> ' ' then
-                    let j = i / 4
-                    stack[j] <- stack[j] @ [ s[i] ])
+            s
+            |> Seq.iteri (fun i v ->
+                if v[1] <> ' ' then
+                    stack[i] <- stack[i] @ [ v[1] ]))
 
         stack
 
@@ -215,14 +216,14 @@ module Day5 =
             |> (fun x -> int x[1], int x[3] - 1, int x[5] - 1))
 
     let ExeCommand (input: string []) take_f =
-        let tmp_st =
-            input |> Array.takeWhile (fun s -> s.Length > 0)
+        let split_i =
+            input |> Array.findIndex (fun s -> s.Length = 0)
 
         let stack =
-            tmp_st[.. tmp_st.Length - 2] |> ParseStack
+            input[.. split_i - 2] |> ParseStack
 
         let command =
-            input[tmp_st.Length + 1 ..] |> ParseCommand
+            input[split_i + 1 ..] |> ParseCommand
 
         command
         |> Array.iter (fun (v, f, t) ->
