@@ -1,5 +1,5 @@
 # Aoc
 
-FSharp solution for Aoc
+FSharp solution for AoC
 
 https://adventofcode.com
