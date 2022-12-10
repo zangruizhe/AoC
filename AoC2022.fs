@@ -1,10 +1,10 @@
 module AoC2022
 // https://adventofcode.com/2022
 
-open Xunit
-open FsUnit
-open Xunit.Abstractions
 open System
+open FsUnit
+open Xunit
+open Xunit.Abstractions
 
 // module Day1 =
 type Day1(output: ITestOutputHelper) =
