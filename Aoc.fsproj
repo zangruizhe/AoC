@@ -8,10 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FsUnit" Version="5.0.3" />
-        <PackageReference Include="FsUnit.xUnit" Version="5.0.3" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="FsUnit" Version="5.0.3"/>
+        <PackageReference Include="FsUnit.xUnit" Version="5.0.4"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
+        <PackageReference Include="xunit" Version="2.4.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -23,12 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="input.fs" />
-      <Compile Include="Aoc2019.fs" />
-      <Compile Include="Aoc2021.fs" />
-      <Compile Include="Program.fs" />
-      <Content Include="Aoc2019-Day8.txt" />
-      <Content Include="Aoc2019-Day6.txt" />
+        <Compile Include="input.fs"/>
+        <Compile Include="Aoc2019.fs"/>
+        <Compile Include="Aoc2021.fs"/>
+        <Compile Include="Program.fs"/>
     </ItemGroup>
 
 </Project>
