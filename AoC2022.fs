@@ -167,3 +167,35 @@ type Day3(output: ITestOutputHelper) =
         |> AocInput.GetInput
         |> F2
         |> should equal 2276
+
+module Day4 =
+    let Parse (input: string []) =
+        input
+        |> Array.map (fun s -> s.Split([| '-'; ',' |]) |> Array.map int)
+
+    let F1 (input: string []) : int =
+        input
+        |> Parse
+        |> Array.filter (fun num ->
+            (num[0] <= num[2] && num[1] >= num[3])
+            || (num[2] <= num[0] && num[3] >= num[1]))
+        |> Array.length
+
+    let F2 (input: string []) : int =
+        input
+        |> Parse
+        |> Array.filter (fun num -> num[2] <= num[1] && num[3] >= num[0])
+        |> Array.length
+
+
+    [<Fact>]
+    let ``Day 4`` () =
+        "2022_D4.txt"
+        |> AocInput.GetInput
+        |> F1
+        |> should equal 487
+
+        "2022_D4.txt"
+        |> AocInput.GetInput
+        |> F2
+        |> should equal 849
