@@ -125,35 +125,30 @@ module Day2 =
         |> F2
         |> should equal 12725
 
-type Day3(output: ITestOutputHelper) =
-    do new AocInput.Converter(output) |> Console.SetOut
-
+module Day3 =
     let GetPrior (c: char) =
         if c >= 'a' then
             int c - int 'a' + 1
         else
             int c - int 'A' + 27
 
-    let GetShareItem (input: string []) =
+    let GetShareItem input =
         input
-        |> Array.map (fun x -> x.ToCharArray() |> Set.ofArray)
-        |> Array.reduce (fun a b -> Set.intersect a b)
+        |> Seq.map Set.ofSeq
+        |> Set.intersectMany
         |> Set.toArray
         |> Array.head
 
     let F1 (input: string []) : int =
         input
-        |> Array.map (fun s ->
-            [| s[0 .. s.Length / 2 - 1]
-               s[s.Length / 2 ..] |]
-            |> GetShareItem
-            |> GetPrior)
+        |> Array.map (fun s -> s |> Seq.splitInto 2)
+        |> Array.map (fun s -> s |> GetShareItem |> GetPrior)
         |> Array.sum
 
     let F2 (input: string []) : int =
         input
-        |> Array.splitInto (input.Length / 3)
-        |> Array.map (fun s -> GetShareItem [| s[0]; s[1]; s[2] |] |> GetPrior)
+        |> Array.chunkBySize 3
+        |> Array.map (fun s -> s |> GetShareItem |> GetPrior)
         |> Array.sum
 
     [<Fact>]
