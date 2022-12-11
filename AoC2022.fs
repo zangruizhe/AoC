@@ -520,3 +520,127 @@ module Day10 =
     [<Fact>]
     let ``Day 10`` () =
         "2022_D10.txt" |> AocInput.GetInput |> F1 |> should equal 12740
+
+module Day11 =
+    let F1 (input: string) : int =
+        let Operator (op: string) (op_v: string) (div_v: int) path1 path2 input : int * int =
+            let op_value = if op_v = "old" then input else int op_v
+
+            match op with
+            | "+" -> input + op_value
+            | "-" -> input - op_value
+            | "*" -> input * op_value
+            | "/" -> input / op_value
+            | _ -> failwith $"can not parse op={op}"
+            |> (fun x -> let t = (x / 3) in if t % div_v = 0 then path1, t else path2, t)
+
+        let ParseInput (input: string) =
+            input.Split "\n\n"
+            |> Array.map (fun s ->
+                let tmp = s.Split '\n'
+
+                let item =
+                    tmp[1].Split(':').[1]
+                        .Split([| ' '; ',' |], StringSplitOptions.RemoveEmptyEntries)
+                    |> Array.map int
+                    |> Array.toList
+
+                let op, op_v = let x = tmp[ 2 ].Split(' ') in x[x.Length - 2], x[x.Length - 1]
+                let div_v = tmp[ 3 ].Split(' ') |> Array.last |> int
+                let path1 = tmp[ 4 ].Split(' ') |> Array.last |> int
+                let path2 = tmp[ 5 ].Split(' ') |> Array.last |> int
+                item, Operator op op_v div_v path1 path2)
+
+        let monkey_val = ParseInput input
+        let start_v = monkey_val |> Array.map fst
+        let monkey_op = monkey_val |> Array.map snd
+
+        [| 1..20 |]
+        |> Array.fold
+            (fun (pre_game: (int list)[], rst: int[]) _ ->
+                pre_game
+                |> Array.iteri (fun i iterm ->
+                    rst[i] <- rst[i] + iterm.Length
+
+                    iterm
+                    |> List.iteri (fun _ v ->
+                        let next, next_v = monkey_op[i]v
+                        pre_game[next] <- pre_game[next] @ [ next_v ])
+
+                    pre_game[i] <- [])
+
+                pre_game, rst)
+            (start_v, Array.zeroCreate monkey_op.Length)
+        |> snd
+        |> Array.sortDescending
+        |> (fun x -> x[0] * x[1])
+
+    let F2 (input: string) =
+        let Operator (op: string) (op_v: string) (div_v: int) path1 path2 relief input : int * int =
+
+            let op_value =
+                if op_v = "old" then
+                    input
+                else
+                    int op_v |> (fun x -> x % Int32.MaxValue)
+
+            let input = input % Int32.MaxValue
+
+            match op with
+            | "+" -> input + op_value
+            | "-" -> input - op_value
+            | "*" -> input * op_value
+            | "/" -> input / op_value
+            | _ -> failwith $"can not parse op={op}"
+            |> (fun x -> let t = (x / relief) in if t % div_v = 0 then path1, t else path2, t)
+
+        let ParseInput (input: string) =
+            input.Split "\n\n"
+            |> Array.map (fun s ->
+                let tmp = s.Split '\n'
+
+                let item =
+                    tmp[1].Split(':').[1]
+                        .Split([| ' '; ',' |], StringSplitOptions.RemoveEmptyEntries)
+                    |> Array.map int
+                    |> Array.toList
+
+                let op, op_v = let x = tmp[ 2 ].Split(' ') in x[x.Length - 2], x[x.Length - 1]
+                let div_v = tmp[ 3 ].Split(' ') |> Array.last |> int
+                let path1 = tmp[ 4 ].Split(' ') |> Array.last |> int
+                let path2 = tmp[ 5 ].Split(' ') |> Array.last |> int
+                item, Operator op op_v div_v path1 path2)
+
+        let monkey_val = ParseInput input
+        let start_v = monkey_val |> Array.map fst
+        let monkey_op = monkey_val |> Array.map snd
+
+        [| 1..10000 |]
+        |> Array.fold
+            (fun (pre_game: (int list)[], rst: int[]) _ ->
+                // printfn $"%A{pre_game}"
+
+                pre_game
+                |> Array.iteri (fun i iterm ->
+                    rst[i] <- rst[i] + iterm.Length
+
+                    iterm
+                    |> List.iteri (fun _ v ->
+                        let next, next_v = monkey_op.[i] 3 v
+                        pre_game[next] <- pre_game[next] @ [ next_v ])
+
+                    pre_game[i] <- [])
+
+                pre_game, rst)
+            (start_v, Array.zeroCreate monkey_op.Length)
+        |> (fun x ->
+            printfn $"%A{x}"
+            x)
+        |> snd
+        |> Array.sortDescending
+        |> (fun x -> uint64 x[0] * uint64 x[1])
+
+    [<Fact>]
+    let ``Day 11`` () =
+        "2022_D11.txt" |> AocInput.GetInputAsText |> F1 |> should equal 67830
+        "2022_D11.txt" |> AocInput.GetInputAsText |> F2 |> should equal 67830
