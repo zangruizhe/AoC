@@ -591,3 +591,54 @@ module Day11 =
     let ``Day 11`` () =
         "2022_D11.txt" |> AocInput.GetInputAsText |> F1 |> should equal 67830UL
         "2022_D11.txt" |> AocInput.GetInputAsText |> F2 |> should equal 15305381442UL
+
+module Day12 =
+    let Solve target (input: string[]) =
+        let graph =
+            Array.init input.Length (fun i -> Array.init input[0].Length (fun j -> input[i].[j]))
+
+        let visited = Array2D.init input.Length input[0].Length (fun _ _ -> false)
+
+        let rec bfs cur next : int =
+            let get_target = next |> List.exists (fun (i, j) -> graph[i].[j] = target || graph[i].[j] = 'S')
+
+            match get_target with
+            | true -> cur
+            | false ->
+                next
+                |> List.collect (fun (i, j) ->
+                    [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
+                    |> List.choose (fun (r, c) ->
+                        let m = r + i
+                        let n = c + j
+
+                        if m < 0 || m >= graph.Length || n < 0 || n >= graph[0].Length then
+                            None
+                        else
+                            let v = if graph[m].[n] = 'S' then 'a' else graph[m].[n]
+
+                            if ((int v) >= (int graph[i].[j] - 1) && visited[m, n] = false) then
+                                visited[m, n] <- true
+                                Some(m, n)
+                            else
+                                None))
+                |> fun next -> if next.IsEmpty then Int32.MaxValue else bfs (cur + 1) next
+
+        let x, y =
+            [ for i = 0 to graph.Length - 1 do
+                  for j = 0 to graph[0].Length - 1 do
+                      if graph[i][j] = 'E' then
+                          graph[i][j] <- 'z'
+                          yield (i, j) ]
+            |> List.head
+
+        visited[x, y] <- true
+        bfs 0 [ (x, y) ]
+
+    let F1 (input: string[]) = Solve 'S' input
+    let F2 (input: string[]) = Solve 'a' input
+
+    [<Fact>]
+    let ``Day 12`` () =
+        "2022_D12.txt" |> AocInput.GetInput |> F1 |> should equal 517
+        "2022_D12.txt" |> AocInput.GetInput |> F2 |> should equal 512
