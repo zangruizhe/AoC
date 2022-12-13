@@ -674,8 +674,8 @@ module Day13 =
     let rec Compare (a: Signal) (b: Signal) =
         match a, b with
         | LIST [], LIST [] -> None
-        | LIST [], LIST (h :: t) -> Some true
-        | LIST (h :: t), LIST [] -> Some false
+        | LIST [], LIST _ -> Some true
+        | LIST _, LIST [] -> Some false
         | LIST (l :: lt), LIST (r :: rt) ->
             match Compare l r with
             | Some v -> Some v
