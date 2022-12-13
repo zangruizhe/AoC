@@ -600,7 +600,8 @@ module Day12 =
         let visited = Array2D.init input.Length input[0].Length (fun _ _ -> false)
 
         let rec bfs cur next : int =
-            let get_target = next |> List.exists (fun (i, j) -> graph[i].[j] = target || graph[i].[j] = 'S')
+            let get_target =
+                next |> List.exists (fun (i, j) -> graph[i].[j] = target || graph[i].[j] = 'S')
 
             match get_target with
             | true -> cur
@@ -642,3 +643,58 @@ module Day12 =
     let ``Day 12`` () =
         "2022_D12.txt" |> AocInput.GetInput |> F1 |> should equal 517
         "2022_D12.txt" |> AocInput.GetInput |> F2 |> should equal 512
+
+module Day13 =
+    type Signal =
+        | NUM of int
+        | LIST of Signal list
+
+    let rec Parse (nums: string []) i : Signal =
+        if nums.Length = 0 then
+            [] |> LIST
+        else
+            if nums[i] = '[' then
+                let n = nums[i].[1..] |> int |> NUM
+                match Parse nums (i+1) with
+                | NUM v -> [n ; NUM v]
+                | LIST v -> n :: v
+                |> LIST
+            else
+
+
+
+
+
+    let rec CheckSignal (a: Signal) (b: Signal) =
+        match a, b with
+        | LIST [], LIST _ -> true
+        | LIST _, LIST [] -> false
+        | LIST (l :: lt), LIST (r :: rt) ->
+            match CheckSignal l r with
+            | false -> false
+            | true -> CheckSignal (LIST lt) (LIST rt)
+
+        | LIST _, NUM _ -> CheckSignal a (LIST [ b ])
+        | NUM _, LIST _ -> CheckSignal (LIST [ a ]) b
+        | NUM l, NUM r -> l > r
+
+    let Check (line: string) =
+        line.Split "\n" |> Array.map Parse |> (fun x -> CheckSignal x[0] x[1])
+
+    let Solve (input: string) =
+        let inputs = input.Split "\n\n"
+
+        inputs
+        |> Array.mapi (fun i s ->
+            match Check s with
+            | true -> i + 1
+            | false -> 0)
+        |> Array.sum
+
+    let F1 (input: string) = input |> Solve
+    let F2 (input: string) = 0
+
+    [<Fact>]
+    let ``Day 13`` () =
+        "2022_D13.txt" |> AocInput.GetInputAsText |> F1 |> should equal 517
+        "2022_D13.txt" |> AocInput.GetInputAsText |> F2 |> should equal 512
