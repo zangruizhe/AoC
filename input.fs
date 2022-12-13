@@ -9,16 +9,16 @@ type Converter(output: ITestOutputHelper) =
     override _.WriteLine message = output.WriteLine message
     override _.Write message = output.WriteLine message
 
+let Char2Int (c: char) : int = int c - int '0'
 
 let IntArray (s: string) = s.Split(';') |> Array.map int
 
 let GetInput (file: string) =
-    System.IO.File.ReadLines(__SOURCE_DIRECTORY__ + $"/data/{file}")
-    |> Seq.toArray
+    System.IO.File.ReadLines(__SOURCE_DIRECTORY__ + $"/data/{file}") |> Seq.toArray
 
 let GetInputAsText (file: string) =
     let txt = System.IO.File.ReadAllText(__SOURCE_DIRECTORY__ + $"/data/{file}")
-    txt.Remove(txt.Length-1, 1)
+    txt.Remove(txt.Length - 1, 1)
 
 module Aoc2021 =
     let D1 =

@@ -649,37 +649,53 @@ module Day13 =
         | NUM of int
         | LIST of Signal list
 
-    let rec Parse (nums: string []) i : Signal =
-        if nums.Length = 0 then
-            [] |> LIST
-        else
-            if nums[i] = '[' then
-                let n = nums[i].[1..] |> int |> NUM
-                match Parse nums (i+1) with
-                | NUM v -> [n ; NUM v]
-                | LIST v -> n :: v
-                |> LIST
+    let rec Parse (nums: string) =
+        let rec ParseWithI i cur_num (cur: Signal list) =
+            let GetCur () =
+                (if cur_num >= 0 then ((NUM cur_num) :: cur) else cur)
+
+            if i = nums.Length then
+                [], i
             else
+                match nums[i] with
+                | '[' ->
+                    let pre = GetCur() |> List.rev
+                    let cur_list, next_i = ParseWithI (i + 1) -1 []
 
+                    ParseWithI next_i -1 []
+                    |> (fun (next, i) -> pre @ [ cur_list |> LIST ] @ next, i)
 
+                | ']' -> GetCur() |> List.rev, (i + 1)
+                | ',' -> ParseWithI (i + 1) -1 (GetCur())
+                | c -> ParseWithI (i + 1) ((max cur_num 0) * 10 + AocInput.Char2Int c) cur
 
-
+        ParseWithI 0 -1 [] |> fst |> List.head
 
     let rec CheckSignal (a: Signal) (b: Signal) =
         match a, b with
-        | LIST [], LIST _ -> true
-        | LIST _, LIST [] -> false
+        | LIST [], LIST _ -> Some true
+        | LIST _, LIST [] -> Some false
         | LIST (l :: lt), LIST (r :: rt) ->
             match CheckSignal l r with
-            | false -> false
-            | true -> CheckSignal (LIST lt) (LIST rt)
-
+            | Some v -> Some v
+            | None -> CheckSignal (LIST lt) (LIST rt)
         | LIST _, NUM _ -> CheckSignal a (LIST [ b ])
         | NUM _, LIST _ -> CheckSignal (LIST [ a ]) b
-        | NUM l, NUM r -> l > r
+        | NUM i, NUM j ->
+            if i < j then Some true
+            elif i > j then Some false
+            else None
 
     let Check (line: string) =
-        line.Split "\n" |> Array.map Parse |> (fun x -> CheckSignal x[0] x[1])
+        line.Split "\n"
+        |> Array.map Parse
+        |> (fun x ->
+            let r = CheckSignal x[0] x[1]
+
+            printfn $"%s{line.Split('\n').[0]} \n%s{line.Split('\n').[1]} --->  \n check result = %A{r}"
+            printfn $"%A{x[0]}\n%A{x[1]}"
+            r)
+        |> Option.defaultValue true
 
     let Solve (input: string) =
         let inputs = input.Split "\n\n"
@@ -687,7 +703,9 @@ module Day13 =
         inputs
         |> Array.mapi (fun i s ->
             match Check s with
-            | true -> i + 1
+            | true ->
+                printfn $"{i + 1} is true"
+                i + 1
             | false -> 0)
         |> Array.sum
 
