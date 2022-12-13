@@ -671,17 +671,17 @@ module Day13 =
 
         ParseWithI 0 -1 [] |> fst |> List.head
 
-    let rec CheckSignal (a: Signal) (b: Signal) =
+    let rec Compare (a: Signal) (b: Signal) =
         match a, b with
         | LIST [], LIST [] -> None
         | LIST [], LIST (h :: t) -> Some true
         | LIST (h :: t), LIST [] -> Some false
         | LIST (l :: lt), LIST (r :: rt) ->
-            match CheckSignal l r with
+            match Compare l r with
             | Some v -> Some v
-            | None -> CheckSignal (LIST lt) (LIST rt)
-        | LIST _, NUM _ -> CheckSignal a (LIST [ b ])
-        | NUM _, LIST _ -> CheckSignal (LIST [ a ]) b
+            | None -> Compare (LIST lt) (LIST rt)
+        | LIST _, NUM _ -> Compare a (LIST [ b ])
+        | NUM _, LIST _ -> Compare (LIST [ a ]) b
         | NUM i, NUM j ->
             if i < j then Some true
             elif i > j then Some false
@@ -690,30 +690,32 @@ module Day13 =
     let Check (line: string) =
         line.Split "\n"
         |> Array.map Parse
-        |> (fun x ->
-            let r = CheckSignal x[0] x[1]
-
-            printfn $"%s{line.Split('\n').[0]} \n%s{line.Split('\n').[1]} --->  \n check result = %A{r}"
-            printfn $"%A{x[0]}\n%A{x[1]}"
-            r)
+        |> (fun x -> Compare x[0] x[1])
         |> Option.defaultValue true
 
-    let Solve (input: string) =
-        let inputs = input.Split "\n\n"
-
-        inputs
+    let F1 (input: string) =
+        input.Split "\n\n"
         |> Array.mapi (fun i s ->
             match Check s with
-            | true ->
-                printfn $"{i + 1} is true"
-                i + 1
+            | true -> i + 1
             | false -> 0)
         |> Array.sum
 
-    let F1 (input: string) = input |> Solve
-    let F2 (input: string) = 0
+    let F2 (input: string) =
+        input.Split "\n\n"
+        |> Array.collect (fun s -> s.Split "\n")
+        |> Array.append [| "[[2]]"; "[[6]]" |]
+        |> Array.sortWith (fun l r ->
+            match Compare (Parse l) (Parse r) with
+            | Some true -> -1
+            | Some false -> 1
+            | None -> 0)
+        |> Array.indexed
+        |> Array.filter (fun (_, s) -> s = "[[2]]" || s = "[[6]]")
+        |> Array.fold (fun pre (i, _) -> pre * (i + 1)) 1
+
 
     [<Fact>]
     let ``Day 13`` () =
-        "2022_D13.txt" |> AocInput.GetInputAsText |> F1 |> should equal 517
-        "2022_D13.txt" |> AocInput.GetInputAsText |> F2 |> should equal 512
+        "2022_D13.txt" |> AocInput.GetInputAsText |> F1 |> should equal 6478
+        "2022_D13.txt" |> AocInput.GetInputAsText |> F2 |> should equal 21922
