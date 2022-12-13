@@ -687,13 +687,14 @@ module Day13 =
             elif i > j then Some false
             else None
 
-    let Check (line: string) =
-        line.Split "\n"
-        |> Array.map Parse
-        |> (fun x -> Compare x[0] x[1])
-        |> Option.defaultValue true
 
     let F1 (input: string) =
+        let Check (line: string) =
+            line.Split "\n"
+            |> Array.map Parse
+            |> (fun x -> Compare x[0] x[1])
+            |> Option.defaultValue true
+
         input.Split "\n\n"
         |> Array.mapi (fun i s ->
             match Check s with
