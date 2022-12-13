@@ -660,10 +660,10 @@ module Day13 =
                 match nums[i] with
                 | '[' ->
                     let pre = GetCur() |> List.rev
-                    let cur_list, next_i = ParseWithI (i + 1) -1 []
+                    let in_bracket, next_i = ParseWithI (i + 1) -1 []
 
                     ParseWithI next_i -1 []
-                    |> (fun (next, i) -> pre @ [ cur_list |> LIST ] @ next, i)
+                    |> (fun (next, i) -> pre @ [ in_bracket |> LIST ] @ next, i)
 
                 | ']' -> GetCur() |> List.rev, (i + 1)
                 | ',' -> ParseWithI (i + 1) -1 (GetCur())
@@ -673,8 +673,9 @@ module Day13 =
 
     let rec CheckSignal (a: Signal) (b: Signal) =
         match a, b with
-        | LIST [], LIST _ -> Some true
-        | LIST _, LIST [] -> Some false
+        | LIST [], LIST [] -> None
+        | LIST [], LIST (h :: t) -> Some true
+        | LIST (h :: t), LIST [] -> Some false
         | LIST (l :: lt), LIST (r :: rt) ->
             match CheckSignal l r with
             | Some v -> Some v
