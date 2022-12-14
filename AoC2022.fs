@@ -720,3 +720,82 @@ module Day13 =
     let ``Day 13`` () =
         "2022_D13.txt" |> AocInput.GetInputAsText |> F1 |> should equal 6478
         "2022_D13.txt" |> AocInput.GetInputAsText |> F2 |> should equal 21922
+
+module Day14 =
+    let GetWholeRock (input: string[]) : (int * int)[] =
+        input
+        |> Array.collect (fun s ->
+            s.Split " -> "
+            |> Array.map (fun s -> let p = s.Split ',' in int p[0], int p[1])
+            |> Array.pairwise
+            |> Array.collect (fun ((x, y), (x1, y1)) ->
+                if x = x1 then
+                    [| for i in [ (min y y1) .. (max y y1) ] -> (x, i) |]
+                else
+                    [| for i in [ (min x x1) .. (max x x1) ] -> (i, y) |]))
+
+    let rec DropSand (matrix: char[][]) (x, y) : int * int =
+        if x = 0 || x = matrix[0].Length - 1 || y >= matrix.Length - 1 then
+            (x, y)
+        else if matrix[y + 1][x] = '.' then
+            DropSand matrix (x, y + 1)
+        elif matrix[y + 1][x - 1] = '.' then
+            DropSand matrix (x - 1, y + 1)
+        elif matrix[y + 1][x + 1] = '.' then
+            DropSand matrix (x + 1, y + 1)
+        else
+            (x, y)
+
+    let rec PlayGame (matrix: char[][]) x i =
+        let rest_x, rest_y = DropSand matrix (x, 0)
+
+        if
+            rest_x = matrix[0].Length - 1
+            || rest_x = 0
+            || rest_y >= matrix.Length - 1
+            || rest_y = 0
+        then
+            i
+        else
+            matrix[rest_y][rest_x] <- '0'
+            PlayGame matrix x (i + 1)
+
+    let F1 (input: string[]) =
+        let rocks = input |> GetWholeRock
+
+        let min_x, max_x, max_y =
+            rocks
+            |> Array.fold
+                (fun (min_x, max_x, max_y) (x, y) -> (min min_x x), (max max_x x), (max max_y y))
+                (500, 500, 0)
+
+        let matrix =
+            Array.init (max_y + 1) (fun _ -> Array.init (max_x - min_x + 1) (fun _ -> '.'))
+
+        rocks |> Array.iter (fun (x, y) -> matrix[y][x - min_x] <- '#')
+
+        PlayGame matrix (500 - min_x) 0
+
+    let F2 (input: string[]) =
+        let rocks = input |> GetWholeRock
+
+        let max_y = rocks |> Array.fold (fun max_y (_, y) -> (max max_y y)) 0 |> (+) 2
+
+        let min_x = 500 - max_y
+        let max_x = 500 + max_y
+
+        let matrix =
+            Array.init (max_y + 1) (fun _ -> Array.init (max_x - min_x + 1) (fun _ -> '.'))
+
+        rocks |> Array.iter (fun (x, y) -> matrix[y][x - min_x] <- '#')
+
+        for i in 0 .. matrix.[0].Length - 1 do
+            matrix[matrix.Length - 1][i] <- '#'
+
+        PlayGame matrix (500 - min_x) 1
+
+
+    [<Fact>]
+    let ``Day 14`` () =
+        "2022_D14.txt" |> AocInput.GetInput |> F1 |> should equal 768
+        "2022_D14.txt" |> AocInput.GetInput |> F2 |> should equal 26686
