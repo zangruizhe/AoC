@@ -802,7 +802,6 @@ module Day14 =
         "2022_D14.txt" |> AocInput.GetInput |> F2 |> should equal 26686
 
 module Day15 =
-
     let GetSensorAndBeacon (str: string) =
         str.Split([| ' '; ':'; '='; ',' |])
         |> (fun x -> (int x[3], int x[6]), (int x[13], int x[16]))
