@@ -29,6 +29,25 @@
         <Compile Include="AoC2021.fs" />
         <Compile Include="AoC2022.fs" />
         <Compile Include="Program.fs" />
+        <Content Include="data\2019_D6.txt" />
+        <Content Include="data\2022_D15.txt" />
+        <Content Include="data\2022_D14.txt" />
+        <Content Include="data\2022_D10.txt" />
+        <Content Include="data\2022_D11.txt" />
+        <Content Include="data\2022_D8.txt" />
+        <Content Include="data\2022_D13.txt" />
+        <Content Include="data\2022_D12.txt" />
+        <Content Include="data\2022_D9.txt" />
+        <Content Include="data\2021_D3.txt" />
+        <Content Include="data\2021_D4.txt" />
+        <Content Include="data\2019_D8.txt" />
+        <Content Include="data\2022_D4.txt" />
+        <Content Include="data\2022_D5.txt" />
+        <Content Include="data\2022_D7.txt" />
+        <Content Include="data\2022_D6.txt" />
+        <Content Include="data\2022_D2.txt" />
+        <Content Include="data\2022_D3.txt" />
+        <Content Include="data\2022_D1.txt" />
     </ItemGroup>
 
 </Project>

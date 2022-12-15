@@ -3,6 +3,7 @@ module AoC2022
 
 open System
 open FsUnit
+open Microsoft.FSharp.Core
 open Xunit
 open Xunit.Abstractions
 open System.Collections.Generic
@@ -801,11 +802,76 @@ module Day14 =
         "2022_D14.txt" |> AocInput.GetInput |> F2 |> should equal 26686
 
 module Day15 =
-    let F1 (input: string[]) = 0
-    let F2 (input: string[]) = 0
 
+    let GetSensorAndBeacon (str: string) =
+        str.Split([| ' '; ':'; '='; ',' |])
+        |> (fun x -> (int x[3], int x[6]), (int x[13], int x[16]))
+
+    let GetLineEmptyPos sen_ben target =
+        sen_ben
+        |> Array.map (fun ((x, y), (x1, y1)) -> (x, y), (abs (x1 - x) + abs (y1 - y)))
+        |> Array.collect (fun ((x, y), len) ->
+
+            if (abs (target - y) <= len) then
+                let diff = len - abs (target - y)
+                [| (x - diff), (x + diff) |]
+            else
+                [||])
+        |> Array.sortBy fst
+        |> Array.fold
+            (fun rst (x1, x2) ->
+                match rst with
+                | [] -> [ (x1, x2) ]
+                | (pre1, pre2) :: t when pre2 >= x1 -> (pre1, (max x2 pre2)) :: t
+                | _ -> (x1, x2) :: rst)
+            []
+        |> List.rev
+
+
+    let F1 (input: string[]) =
+        let target = 2000000
+        let sen_ben = input |> Array.map (fun x -> GetSensorAndBeacon x)
+
+        let use_pos =
+            sen_ben
+            |> Array.collect (fun ((x, y), (x1, y1)) ->
+                [| if (y = target) then
+                       yield (x, y)
+                   elif (y1 = target) then
+                       yield (x1, y1) |])
+            |> Array.distinct
+            |> Array.length
+
+        GetLineEmptyPos sen_ben target
+        |> List.map (fun (x1, x2) -> x2 - x1 + 1)
+        |> List.sum
+        |> (fun x -> x - use_pos)
+
+
+    let F2 (input: string[]) =
+        let sen_ben = input |> Array.map (fun x -> GetSensorAndBeacon x)
+        let limit = 4000000
+
+        [ limit .. -1 .. 0 ]
+        |> List.pick (fun target ->
+            let lines = GetLineEmptyPos sen_ben target |> Array.ofList
+
+            if lines.Length = 1 && fst lines[0] > 0 || snd lines[0] < limit then
+                Some(target, lines)
+            elif lines.Length > 1 then
+                Some(target, lines)
+            else
+                None)
+        |> (fun (y, x_list) ->
+            if x_list.Length = 1 then
+                if fst x_list[0] = 0 then snd x_list[0]
+                elif snd x_list[0] = limit then 0
+                else failwith "can not be here"
+            else
+                snd x_list[0] + 1
+            |> fun x -> (uint64 y) + (uint64 limit) * (uint64 x))
 
     [<Fact>]
     let ``Day 15`` () =
-        "2022_D15.txt" |> AocInput.GetInput |> F1 |> should equal 768
-        "2022_D15.txt" |> AocInput.GetInput |> F2 |> should equal 26686
+        "2022_D15.txt" |> AocInput.GetInput |> F1 |> should equal 5394423
+        "2022_D15.txt" |> AocInput.GetInput |> F2 |> should equal 11840879211051UL
