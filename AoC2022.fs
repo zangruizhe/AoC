@@ -809,14 +809,14 @@ module Day15 =
 
     let GetLineEmptyPos sen_ben target =
         sen_ben
-        |> Array.map (fun ((x, y), (x1, y1)) -> (x, y), (abs (x1 - x) + abs (y1 - y)))
-        |> Array.collect (fun ((x, y), len) ->
+        |> Array.choose (fun ((x, y), (x1, y1)) ->
+            let len = abs (x1 - x) + abs (y1 - y)
 
             if (abs (target - y) <= len) then
                 let diff = len - abs (target - y)
-                [| (x - diff), (x + diff) |]
+                Some((x - diff), (x + diff))
             else
-                [||])
+                None)
         |> Array.sortBy fst
         |> Array.fold
             (fun rst (x1, x2) ->
@@ -830,14 +830,14 @@ module Day15 =
 
     let F1 (input: string[]) =
         let target = 2000000
-        let sen_ben = input |> Array.map (fun x -> GetSensorAndBeacon x)
+        let sen_ben = input |> Array.map GetSensorAndBeacon
 
         let use_pos =
             sen_ben
             |> Array.collect (fun ((x, y), (x1, y1)) ->
                 [| if (y = target) then
                        yield (x, y)
-                   elif (y1 = target) then
+                   if (y1 = target) then
                        yield (x1, y1) |])
             |> Array.distinct
             |> Array.length
