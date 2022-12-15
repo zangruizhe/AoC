@@ -799,3 +799,13 @@ module Day14 =
     let ``Day 14`` () =
         "2022_D14.txt" |> AocInput.GetInput |> F1 |> should equal 768
         "2022_D14.txt" |> AocInput.GetInput |> F2 |> should equal 26686
+
+module Day15 =
+    let F1 (input: string[]) = 0
+    let F2 (input: string[]) = 0
+
+
+    [<Fact>]
+    let ``Day 15`` () =
+        "2022_D15.txt" |> AocInput.GetInput |> F1 |> should equal 768
+        "2022_D15.txt" |> AocInput.GetInput |> F2 |> should equal 26686
