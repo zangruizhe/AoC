@@ -882,12 +882,18 @@ module Day15 =
         "2022_D15.txt" |> AocInput.GetInput |> F2 |> should equal 11840879211051UL
 
 module Day16 =
-    let graph = Array.init 2626 (fun _ -> Array.create 2626 false)
-    let opened = Array.create 2626 false
-    let rate = Array.create 2626 0
+    let keys =
+        [| for h = 'A' to 'Z' do
+               for t = 'A' to 'Z' do
+                   yield string h + string t |]
+
+    let N = keys.Length
+    let graph = Array.init N (fun _ -> Array.create N false)
+    let opened = Array.create N false
+    let rate = Array.create N 0
 
     let GetIndex (key: string) =
-        (int key[0] - int 'A') * 100 + (int key[1] - int 'A')
+        keys |> Array.findIndex (fun x -> x = key)
 
     let ParseInput (input: string) =
         input.Split([| ' '; '='; ';'; ',' |])
@@ -901,45 +907,56 @@ module Day16 =
             (GetIndex x[1], int x[5], connect))
         |> (fun (key, value, connect) ->
             rate[key] <- value
-            opened[key] <- false
             connect |> Array.iter (fun x -> graph[key][x] <- true))
 
-    let rec dfs start has_time rst : int =
+    let GetBest start has_time : int * int * int =
+        let dst = Array.create N 0
+        // get dst to whole point
+        let bfs start cur_time =
+            let rec loop cur_time (node: int[]) =
+                node
+                |> Array.iter (fun i ->
+                    if opened[i] = false then
+                        dst[i] <- cur_time
+                    else
+                        dst[i] <- 0)
+
+                if cur_time > 0 then
+                    node
+                    |> Array.collect (fun n ->
+                        graph[n]
+                        |> Array.mapi (fun i v -> if dst[i] = 0 && v = true then Some i else None)
+                        |> Array.choose id)
+                    |> loop (cur_time - 1)
+
+            loop cur_time [| start |]
+
+        bfs start has_time
+
+        dst
+        |> Array.mapi (fun i t ->
+            if rate[i] > 0 && t > 0 then
+                (i, t - 1, (t - 1) * rate[i])
+            else
+                (i, t, 0))
+        |> Array.sortWith (fun (_, t, v) (_, t1, v1) -> if v = v1 then compare t1 t else compare v1 v)
+        |> Array.head
+
+    let rec traver start has_time rst : int =
         printfn $"{start}, {has_time}, {rst}"
 
         if has_time <= 0 then
             rst
         else
-            let open_s = (has_time - 1) * rate[start]
+            let cur_i, cur_time, get_v = GetBest start has_time
+            LOG(cur_i, cur_time, get_v, rate[cur_i])
+            opened[cur_i] <- true
 
-            graph[start]
-            |> Array.mapi (fun i v ->
-                if v = true then
-                    graph[start][i] <- false
-
-                    let next =
-                        [| if rate[start] > 0 && opened[start] = false then
-                               opened[start] <- true
-                               let t = (dfs i (has_time - 2) (rst + open_s))
-                               opened[start] <- false
-                               yield t
-                           yield (dfs i (has_time - 1) rst) |]
-                        |> Array.max
-
-                    graph[start][i] <- true
-
-                    next
-                else
-                    rst)
-            |> Array.max
-
+            traver cur_i cur_time (rst + get_v)
 
     let F1 (input: string[]) =
-        input |> Array.iter (ParseInput)
-        rate |> LOG |> ignore
-        // graph |> Seq.iter (fun v -> v |> printfn "%A" v)
-        // opened["AA"] <- true
-        dfs 0 30 0
+        input |> Array.iter ParseInput
+        traver 0 30 0
 
 
     let F2 (input: string[]) = 0
