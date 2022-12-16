@@ -48,6 +48,7 @@
         <Content Include="data\2022_D2.txt" />
         <Content Include="data\2022_D3.txt" />
         <Content Include="data\2022_D1.txt" />
+        <Content Include="data\2022_D16.txt" />
     </ItemGroup>
 
 </Project>

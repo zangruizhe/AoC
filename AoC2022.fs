@@ -8,6 +8,12 @@ open Xunit
 open Xunit.Abstractions
 open System.Collections.Generic
 
+let XLOG x =
+    printfn $"%A{x}"
+    x
+
+let LOG x = printfn $"%A{x}"
+
 type Day1(output: ITestOutputHelper) =
     do new AocInput.Converter(output) |> Console.SetOut
 
@@ -874,3 +880,71 @@ module Day15 =
     let ``Day 15`` () =
         "2022_D15.txt" |> AocInput.GetInput |> F1 |> should equal 5394423
         "2022_D15.txt" |> AocInput.GetInput |> F2 |> should equal 11840879211051UL
+
+module Day16 =
+    let graph = Array.init 2626 (fun _ -> Array.create 2626 false)
+    let opened = Array.create 2626 false
+    let rate = Array.create 2626 0
+
+    let GetIndex (key: string) =
+        (int key[0] - int 'A') * 100 + (int key[1] - int 'A')
+
+    let ParseInput (input: string) =
+        input.Split([| ' '; '='; ';'; ',' |])
+        |> (fun x ->
+            let connect =
+                x
+                |> Array.filter (fun s -> s.Length = 2 && int s[0] >= int 'A' && int s[0] <= int 'Z')
+                |> Array.tail
+                |> Array.map GetIndex
+
+            (GetIndex x[1], int x[5], connect))
+        |> (fun (key, value, connect) ->
+            rate[key] <- value
+            opened[key] <- false
+            connect |> Array.iter (fun x -> graph[key][x] <- true))
+
+    let rec dfs start has_time rst : int =
+        printfn $"{start}, {has_time}, {rst}"
+
+        if has_time <= 0 then
+            rst
+        else
+            let open_s = (has_time - 1) * rate[start]
+
+            graph[start]
+            |> Array.mapi (fun i v ->
+                if v = true then
+                    graph[start][i] <- false
+
+                    let next =
+                        [| if rate[start] > 0 && opened[start] = false then
+                               opened[start] <- true
+                               let t = (dfs i (has_time - 2) (rst + open_s))
+                               opened[start] <- false
+                               yield t
+                           yield (dfs i (has_time - 1) rst) |]
+                        |> Array.max
+
+                    graph[start][i] <- true
+
+                    next
+                else
+                    rst)
+            |> Array.max
+
+
+    let F1 (input: string[]) =
+        input |> Array.iter (ParseInput)
+        rate |> LOG |> ignore
+        // graph |> Seq.iter (fun v -> v |> printfn "%A" v)
+        // opened["AA"] <- true
+        dfs 0 30 0
+
+
+    let F2 (input: string[]) = 0
+
+    [<Fact>]
+    let ``Day 16`` () =
+        "2022_D16.txt" |> AocInput.GetInput |> F1 |> should equal 5394423
+        "2022_D16.txt" |> AocInput.GetInput |> F2 |> should equal 11840879211051UL
