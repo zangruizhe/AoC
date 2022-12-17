@@ -974,7 +974,78 @@ module Day16 =
                 0)
         |> Array.max
 
-    let F2 (input: string[]) = 0
+    let F2 (input: string[]) =
+        let keys, rate, connects =
+            input
+            |> Array.fold
+                (fun (key, rate, connect) s ->
+                    let t_k, t_r, t_c = ParseInput s
+                    t_k :: key, t_r :: rate, t_c :: connect)
+                ([], [], [])
+            |> fun (key, rat, cnt) -> key |> List.toArray, rat |> List.toArray, cnt |> List.toArray
+
+
+        let GetIndex (key: string) =
+            keys |> Array.findIndex (fun x -> x = key)
+
+        let N = keys.Length
+        let graph = Array.init N (fun _ -> Array.create N 0)
+
+        for i in 0 .. N - 1 do
+            connects[i] |> Array.iter (fun j -> graph[GetIndex keys[i]][GetIndex j] <- 1)
+
+        let Good = rate |> Array.indexed |> Array.filter (fun (i, v) -> v > 0)
+        Good |> Array.iter (fun (i, v) -> printfn $"{keys[i]}={v}")
+
+        let GetGoodIndex x =
+            Good |> Array.findIndex (fun (i, v) -> i = x)
+
+        let rate_N = Good.Length
+        let rate_S = (1 <<< rate_N) - 1
+
+        // let mem =
+        //     Array.init N (fun _ -> Array.init 31 (fun _ -> Array.init (rate_S + 1) (fun _ -> Array.create 2 -1)))
+
+        let full_time = 26
+        let mem = Array.create (N * (full_time+1) * (rate_S + 1) * 2) -1
+
+        let rec dfs full_time (start: int) cur_t rate_s player =
+            let key =
+                start * (full_time+1) * (rate_S + 1) * 2 + cur_t * (rate_S + 1) * 2 + rate_s * 2 + player
+
+            if cur_t = 0 then
+                if player = 0 then
+                    0
+                else
+                    (dfs full_time (GetIndex "AA") full_time rate_s 0)
+            elif mem[key] <> -1 then
+                mem[key]
+            else
+                let just_open =
+                    if rate[start] > 0 && (rate_s &&& (1 <<< GetGoodIndex(start))) > 0 then
+                        (cur_t - 1) * rate[start]
+                    else
+                        0
+
+                graph[start]
+                |> Array.mapi (fun i v ->
+                    [ if v > 0 then
+                          yield dfs full_time i (cur_t - 1) rate_s player
+
+                          if cur_t > 2 && just_open > 0 then
+                              let next_rate_s = rate_s ^^^ (1 <<< GetGoodIndex(start))
+                              yield just_open + dfs full_time i (cur_t - 2) next_rate_s player
+                      else
+                          yield just_open ]
+                    |> Seq.max)
+                |> Array.max
+                |> fun x ->
+                    mem[key] <- x
+                    // printfn $"{keys[start]}, {cur_t}, {rate_s}, {player} = {x}"
+                    x
+
+
+        dfs full_time (GetIndex "AA") full_time rate_S 1
 
     [<Fact>]
     let ``Day 16`` () =
