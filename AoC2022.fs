@@ -892,89 +892,7 @@ module Day16 =
 
             (x[1], int x[5], connect))
 
-    let F1 (input: string[]) =
-        let keys, rate, connects =
-            input
-            |> Array.fold
-                (fun (key, rate, connect) s ->
-                    let t_k, t_r, t_c = ParseInput s
-                    t_k :: key, t_r :: rate, t_c :: connect)
-                ([], [], [])
-            |> fun (key, rat, cnt) -> key |> List.toArray, rat |> List.toArray, cnt |> List.toArray
-
-
-        let GetIndex (key: string) =
-            keys |> Array.findIndex (fun x -> x = key)
-
-        let N = keys.Length
-        let graph = Array.init N (fun _ -> Array.create N Int32.MaxValue)
-
-        for i in 0 .. N - 1 do
-            connects[i] |> Array.iter (fun j -> graph[GetIndex keys[i]][GetIndex j] <- 1)
-
-        for k in 0 .. N - 1 do
-            for i in 0 .. N - 1 do
-                for j in 0 .. N - 1 do
-                    if graph[i][k] <> Int32.MaxValue && graph[k][j] <> Int32.MaxValue then
-                        graph[i][j] <- min (graph[i][j]) (graph[i][k] + graph[k][j])
-
-                        if i = j then
-                            graph[i][j] <- 0
-
-        let Good = rate |> Array.indexed |> Array.filter (fun (i, v) -> v > 0)
-        Good |> Array.iter (fun (i, v) -> printfn $"{keys[i]}={v}")
-
-        let good_rate = Good |> Array.map snd
-        let min_graph = Array.init Good.Length (fun _ -> Array.create Good.Length 0)
-
-        for i in 0 .. min_graph.Length - 1 do
-            for j in 0 .. min_graph.Length - 1 do
-                min_graph[i][j] <- graph[fst Good[i]][fst Good[j]]
-
-        min_graph |> Array.iteri (fun i v -> printfn " %A = %A" keys[fst Good[i]] v)
-
-        let GetGoodIndex x =
-            Good |> Array.findIndex (fun (i, v) -> i = x)
-
-        let visited = Array.create Good.Length false
-
-        let rec dfs start cur_time =
-
-            if cur_time <= 1 || visited[start] = true then
-                0
-            else
-                visited[start] <- true
-                let open_n = (cur_time - 1) * good_rate[start]
-
-                let next =
-                    min_graph[start]
-                    |> Array.mapi (fun i v ->
-                        if v > 0 && good_rate[i] > 0 && cur_time - v > 2 then
-                            let tmp = good_rate[start]
-                            good_rate[start] <- 0
-                            let next = open_n + (dfs i (cur_time - v - 1))
-                            good_rate[start] <- tmp
-                            next
-                        else
-                            open_n)
-                    |> Array.max
-
-                visited[start] <- false
-                // printfn $"%A{keys[fst Good[start]]}, {cur_time}, rst={next}"
-                next
-
-
-        graph[GetIndex "AA"]
-        |> Array.mapi (fun i v ->
-            if rate[i] > 0 && v > 0 then
-                let start = GetGoodIndex i
-                printfn $"from AA to {keys[i]} with {v}"
-                dfs start (30 - v)
-            else
-                0)
-        |> Array.max
-
-    let F2 (input: string[]) =
+    let Solution (input: string[]) start_time player =
         let keys, rate, connects =
             input
             |> Array.fold
@@ -997,21 +915,25 @@ module Day16 =
         let Good = rate |> Array.indexed |> Array.filter (fun (i, v) -> v > 0)
         Good |> Array.iter (fun (i, v) -> printfn $"{keys[i]}={v}")
 
-        let GetGoodIndex x =
-            Good |> Array.findIndex (fun (i, v) -> i = x)
+        let GoodIndex =
+            let cache = Dictionary<int, int>()
+            Good |> Array.iteri (fun j (i, v) -> cache[i] <- j)
+            cache
+
+        let GetGoodIndex x = GoodIndex[x]
 
         let rate_N = Good.Length
         let rate_S = (1 <<< rate_N) - 1
 
-        // let mem =
-        //     Array.init N (fun _ -> Array.init 31 (fun _ -> Array.init (rate_S + 1) (fun _ -> Array.create 2 -1)))
-
-        let full_time = 26
-        let mem = Array.create (N * (full_time+1) * (rate_S + 1) * 2) -1
+        let full_time = 30
+        let mem = Array.create (N * (full_time + 1) * (rate_S + 1) * 2) -1
 
         let rec dfs full_time (start: int) cur_t rate_s player =
             let key =
-                start * (full_time+1) * (rate_S + 1) * 2 + cur_t * (rate_S + 1) * 2 + rate_s * 2 + player
+                start * (full_time + 1) * (rate_S + 1) * 2
+                + cur_t * (rate_S + 1) * 2
+                + rate_s * 2
+                + player
 
             if cur_t = 0 then
                 if player = 0 then
@@ -1041,13 +963,14 @@ module Day16 =
                 |> Array.max
                 |> fun x ->
                     mem[key] <- x
-                    // printfn $"{keys[start]}, {cur_t}, {rate_s}, {player} = {x}"
                     x
 
+        dfs start_time (GetIndex "AA") start_time rate_S player
 
-        dfs full_time (GetIndex "AA") full_time rate_S 1
+    let F1 (inputs: string[]) = Solution inputs 30 0
+    let F2 (inputs: string[]) = Solution inputs 26 1
 
     [<Fact>]
     let ``Day 16`` () =
-        "2022_D16.txt" |> AocInput.GetInput |> F1 |> should equal 5394423
-        "2022_D16.txt" |> AocInput.GetInput |> F2 |> should equal 11840879211051UL
+        "2022_D16.txt" |> AocInput.GetInput |> F1 |> should equal 1720
+        "2022_D16.txt" |> AocInput.GetInput |> F2 |> should equal 2582
