@@ -882,19 +882,6 @@ module Day15 =
         "2022_D15.txt" |> AocInput.GetInput |> F2 |> should equal 11840879211051UL
 
 module Day16 =
-    let keys =
-        [| for h = 'A' to 'Z' do
-               for t = 'A' to 'Z' do
-                   yield string h + string t |]
-
-    let N = keys.Length
-    let graph = Array.init N (fun _ -> Array.create N false)
-    let opened = Array.create N false
-    let rate = Array.create N 0
-
-    let GetIndex (key: string) =
-        keys |> Array.findIndex (fun x -> x = key)
-
     let ParseInput (input: string) =
         input.Split([| ' '; '='; ';'; ',' |])
         |> (fun x ->
@@ -902,62 +889,90 @@ module Day16 =
                 x
                 |> Array.filter (fun s -> s.Length = 2 && int s[0] >= int 'A' && int s[0] <= int 'Z')
                 |> Array.tail
-                |> Array.map GetIndex
 
-            (GetIndex x[1], int x[5], connect))
-        |> (fun (key, value, connect) ->
-            rate[key] <- value
-            connect |> Array.iter (fun x -> graph[key][x] <- true))
-
-    let GetBest start has_time : int * int * int =
-        let dst = Array.create N 0
-        // get dst to whole point
-        let bfs start cur_time =
-            let rec loop cur_time (node: int[]) =
-                node
-                |> Array.iter (fun i ->
-                    if opened[i] = false then
-                        dst[i] <- cur_time
-                    else
-                        dst[i] <- 0)
-
-                if cur_time > 0 then
-                    node
-                    |> Array.collect (fun n ->
-                        graph[n]
-                        |> Array.mapi (fun i v -> if dst[i] = 0 && v = true then Some i else None)
-                        |> Array.choose id)
-                    |> loop (cur_time - 1)
-
-            loop cur_time [| start |]
-
-        bfs start has_time
-
-        dst
-        |> Array.mapi (fun i t ->
-            if rate[i] > 0 && t > 0 then
-                (i, t - 1, (t - 1) * rate[i])
-            else
-                (i, t, 0))
-        |> Array.sortWith (fun (_, t, v) (_, t1, v1) -> if v = v1 then compare t1 t else compare v1 v)
-        |> Array.head
-
-    let rec traver start has_time rst : int =
-        printfn $"{start}, {has_time}, {rst}"
-
-        if has_time <= 0 then
-            rst
-        else
-            let cur_i, cur_time, get_v = GetBest start has_time
-            LOG(cur_i, cur_time, get_v, rate[cur_i])
-            opened[cur_i] <- true
-
-            traver cur_i cur_time (rst + get_v)
+            (x[1], int x[5], connect))
 
     let F1 (input: string[]) =
-        input |> Array.iter ParseInput
-        traver 0 30 0
+        let keys, rate, connects =
+            input
+            |> Array.fold
+                (fun (key, rate, connect) s ->
+                    let t_k, t_r, t_c = ParseInput s
+                    t_k :: key, t_r :: rate, t_c :: connect)
+                ([], [], [])
+            |> fun (key, rat, cnt) -> key |> List.toArray, rat |> List.toArray, cnt |> List.toArray
 
+
+        let GetIndex (key: string) =
+            keys |> Array.findIndex (fun x -> x = key)
+
+        let N = keys.Length
+        let graph = Array.init N (fun _ -> Array.create N Int32.MaxValue)
+
+        for i in 0 .. N - 1 do
+            connects[i] |> Array.iter (fun j -> graph[GetIndex keys[i]][GetIndex j] <- 1)
+
+        for k in 0 .. N - 1 do
+            for i in 0 .. N - 1 do
+                for j in 0 .. N - 1 do
+                    if graph[i][k] <> Int32.MaxValue && graph[k][j] <> Int32.MaxValue then
+                        graph[i][j] <- min (graph[i][j]) (graph[i][k] + graph[k][j])
+
+                        if i = j then
+                            graph[i][j] <- 0
+
+        let Good = rate |> Array.indexed |> Array.filter (fun (i, v) -> v > 0)
+        Good |> Array.iter (fun (i, v) -> printfn $"{keys[i]}={v}")
+
+        let good_rate = Good |> Array.map snd
+        let min_graph = Array.init Good.Length (fun _ -> Array.create Good.Length 0)
+
+        for i in 0 .. min_graph.Length - 1 do
+            for j in 0 .. min_graph.Length - 1 do
+                min_graph[i][j] <- graph[fst Good[i]][fst Good[j]]
+
+        min_graph |> Array.iteri (fun i v -> printfn " %A = %A" keys[fst Good[i]] v)
+
+        let GetGoodIndex x =
+            Good |> Array.findIndex (fun (i, v) -> i = x)
+
+        let visited = Array.create Good.Length false
+
+        let rec dfs start cur_time =
+
+            if cur_time <= 1 || visited[start] = true then
+                0
+            else
+                visited[start] <- true
+                let open_n = (cur_time - 1) * good_rate[start]
+
+                let next =
+                    min_graph[start]
+                    |> Array.mapi (fun i v ->
+                        if v > 0 && good_rate[i] > 0 && cur_time - v > 2 then
+                            let tmp = good_rate[start]
+                            good_rate[start] <- 0
+                            let next = open_n + (dfs i (cur_time - v - 1))
+                            good_rate[start] <- tmp
+                            next
+                        else
+                            open_n)
+                    |> Array.max
+
+                visited[start] <- false
+                // printfn $"%A{keys[fst Good[start]]}, {cur_time}, rst={next}"
+                next
+
+
+        graph[GetIndex "AA"]
+        |> Array.mapi (fun i v ->
+            if rate[i] > 0 && v > 0 then
+                let start = GetGoodIndex i
+                printfn $"from AA to {keys[i]} with {v}"
+                dfs start (30 - v)
+            else
+                0)
+        |> Array.max
 
     let F2 (input: string[]) = 0
 
