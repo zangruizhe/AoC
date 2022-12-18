@@ -1019,9 +1019,9 @@ module Day17 =
         let GetNextJet n =
             jets[n] |> fun c -> if c = '<' then (-1L, 0L) else (1L, 0L)
 
-        let rec PlayGame brick_num brick jet_num high =
+        let rec PlayGame brick_num brick jet_num =
             if brick_num = level then
-                high
+                graph |> Array.max
             else
                 // let fast_move = (brick |> Array.last |> snd) - high - 1L
                 //
@@ -1042,17 +1042,17 @@ module Day17 =
                 let good, brick = MoveDown brick
 
                 if good then
-                    PlayGame brick_num brick next_jet high
+                    PlayGame brick_num brick next_jet
                 else
                     brick |> Array.iter (fun (x, y) -> graph[int x] <- max graph[int x] y)
-                    let next_high = max (snd brick[0]) high
-                    let brick = GetNextBrick (int (brick_num % 5UL)) next_high
-                    PlayGame (brick_num + 1UL) brick next_jet next_high
+                    let brick = GetNextBrick (int (brick_num % 5UL)) (graph |> Array.max)
+                    PlayGame (brick_num + 1UL) brick next_jet
 
-        PlayGame 1UL (GetNextBrick 0 0) 0 0L
+        PlayGame 1UL (GetNextBrick 0 0) 0
 
     let F1 (input: string[]) = Solution input 2023UL
-    let F2 (input: string[]) = Solution input 1000000000000UL
+    let F2 (input: string[]) = Solution input 2023UL
+    // let F2 (input: string[]) = Solution input 1000000000000UL
 
     [<Fact>]
     let ``Day 17`` () =
