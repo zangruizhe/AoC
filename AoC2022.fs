@@ -984,14 +984,15 @@ module Day17 =
             |> Array.collect (fun s -> s.ToCharArray())
             |> Array.map (fun c -> if c = '<' then (-1L, 0L) else (1L, 0L))
 
-        let graph = Array.create 7 0L
+        // let graph = Array.create 7 0L
+        let graph = HashSet<int64 * int64>()
 
         let MoveByJet (jx, jy) (brick: Brick) =
             brick
             |> Array.choose (fun (x, y) ->
                 let tx, ty = (x + jx, y + jy)
 
-                if tx >= 0 && tx < 7 && graph[int tx] < ty then
+                if tx >= 0 && tx < 7 && graph.Contains(tx, ty) = false then
                     Some(tx, ty)
                 else
                     None)
@@ -1002,7 +1003,7 @@ module Day17 =
             |> Array.choose (fun (x, y) ->
                 let tx, ty = (x, y - 1L)
 
-                if ty > 0 && graph[int tx] < ty then Some(tx, ty) else None)
+                if ty > 0 && graph.Contains(tx, ty) = false then Some(tx, ty) else None)
             |> fun rst ->
                 if rst.Length = brick.Length then
                     true, rst
@@ -1021,22 +1022,10 @@ module Day17 =
 
         let GetNextJet n = jets[n]
 
-        let rec PlayGame brick_num brick jet_num =
+        let rec PlayGame brick_num brick jet_num high =
             if brick_num >= level then
-                graph |> Array.max
+                high
             else
-                // let fast_move = (brick |> Array.last |> snd) - high - 1L
-                //
-                // let next_jet, jet =
-                //     [| 0L .. fast_move - 1L |]
-                //     |> Array.fold
-                //         (fun (jet_num, pre_jet) i ->
-                //             let next = GetNextJet(jet_num % jets.Length)
-                //             (jet_num + 1) % jets.Length, (fst pre_jet + fst next, snd pre_jet + snd next))
-                //         (jet_num, (0L, 0L))
-                //
-                // let brick = brick |> Array.map (fun (x, y) -> x, y - fast_move)
-
                 let jet = GetNextJet(jet_num % jets.Length)
                 let next_jet = (jet_num + 1) % jets.Length
                 let brick = MoveByJet jet brick
@@ -1044,18 +1033,19 @@ module Day17 =
                 let good, brick = MoveDown brick
 
                 if good then
-                    PlayGame brick_num brick next_jet
+                    PlayGame brick_num brick next_jet high
                 else
-                    brick |> Array.iter (fun (x, y) -> graph[int x] <- max graph[int x] y)
-                    let brick = GetNextBrick (int (brick_num % 5UL)) (graph |> Array.max)
+                    brick |> Array.iter (fun (x, y) -> graph.Add(x, y) |> ignore)
+                    let next_high = max high (snd brick[0])
+                    let brick = GetNextBrick (int (brick_num % 5UL)) next_high
                     // printfn $"{brick_num}; %A{graph}"
-                    PlayGame (brick_num + 1UL) brick next_jet
+                    PlayGame (brick_num + 1UL) brick next_jet next_high
 
-        PlayGame 1UL (GetNextBrick 0 0) 0
+        PlayGame 1UL (GetNextBrick 0 0) 0 0
 
     let F1 (input: string[]) = Solution input 2023UL
-    // let F2 (input: string[]) = Solution input 100UL
-    let F2 (input: string[]) = Solution input 1000000000000UL
+    let F2 (input: string[]) = Solution input 100UL
+    // let F2 (input: string[]) = Solution input 1000000000000UL
 
     [<Fact>]
     let ``Day 17`` () =
