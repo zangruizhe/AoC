@@ -1003,7 +1003,10 @@ module Day17 =
             |> Array.choose (fun (x, y) ->
                 let tx, ty = (x, y - 1L)
 
-                if ty > 0 && graph.Contains(tx, ty) = false then Some(tx, ty) else None)
+                if ty > 0 && graph.Contains(tx, ty) = false then
+                    Some(tx, ty)
+                else
+                    None)
             |> fun rst ->
                 if rst.Length = brick.Length then
                     true, rst
@@ -1022,9 +1025,18 @@ module Day17 =
 
         let GetNextJet n = jets[n]
 
-        let rec PlayGame brick_num brick jet_num high =
+        let mem = Dictionary<int, int64>()
+        let mutable rep_jet = 0
+        let mutable pre_jet_high = 0UL
+        let mutable rep_brick_high = 0UL
+
+        let mutable pre_brick_num = 0UL
+        let mutable rep_brick_num = 0UL
+        let mutable skip_num = 0UL
+
+        let rec PlayGame brick_num brick jet_num high : uint64 =
             if brick_num >= level then
-                high
+                high + (skip_num) * uint64 rep_brick_high
             else
                 let jet = GetNextJet(jet_num % jets.Length)
                 let next_jet = (jet_num + 1) % jets.Length
@@ -1036,16 +1048,35 @@ module Day17 =
                     PlayGame brick_num brick next_jet high
                 else
                     brick |> Array.iter (fun (x, y) -> graph.Add(x, y) |> ignore)
-                    let next_high = max high (snd brick[0])
-                    let brick = GetNextBrick (int (brick_num % 5UL)) next_high
-                    // printfn $"{brick_num}; %A{graph}"
-                    PlayGame (brick_num + 1UL) brick next_jet next_high
+                    let next_high = max high (uint64 (snd brick[0]))
+                    let brick = GetNextBrick (int (brick_num % 5UL)) (int64 next_high)
 
-        PlayGame 1UL (GetNextBrick 0 0) 0 0
+                    if jet_num = 2 && rep_jet < 10 then
+
+                        printfn
+                            $"{rep_jet} ; brick num={(brick_num - 1UL) % 5UL} ; jet_num={jet_num} ; {next_high - pre_jet_high} = {rep_brick_high} {brick_num - pre_brick_num} = {rep_brick_num}"
+
+                        rep_jet <- rep_jet + 1
+                        rep_brick_num <- brick_num - pre_brick_num
+                        rep_brick_high <- next_high - pre_jet_high
+                        pre_jet_high <- next_high
+                        pre_brick_num <- brick_num
+
+
+                    if jet_num = 2 && rep_jet >= 10 && brick_num + rep_brick_num < level then
+                        let tmp = (level - brick_num) / rep_brick_num
+                        skip_num <- tmp
+                        printfn $"skip = {skip_num} ; cur_high = {next_high} ; cur_num={brick_num}"
+                        PlayGame (brick_num + rep_brick_num * tmp + 1UL) brick next_jet next_high
+                    // PlayGame (brick_num + 1UL) brick next_jet next_high
+                    else
+                        PlayGame (brick_num + 1UL) brick next_jet next_high
+
+        PlayGame 1UL (GetNextBrick 0 0) 0 0UL
 
     let F1 (input: string[]) = Solution input 2023UL
-    let F2 (input: string[]) = Solution input 100UL
-    // let F2 (input: string[]) = Solution input 1000000000000UL
+    // let F2 (input: string[]) = Solution input 100UL
+    let F2 (input: string[]) = Solution input 1000000000000UL
 
     [<Fact>]
     let ``Day 17`` () =
