@@ -977,10 +977,13 @@ module Day16 =
 
 module Day17 =
     type Brick = (int64 * int64)[]
-    let ParseInput (s: string) = s.ToCharArray()
 
     let Solution (input: string[]) level =
-        let jets = input |> Array.collect (fun s -> s.ToCharArray())
+        let jets =
+            input
+            |> Array.collect (fun s -> s.ToCharArray())
+            |> Array.map (fun c -> if c = '<' then (-1L, 0L) else (1L, 0L))
+
         let graph = Array.create 7 0L
 
         let MoveByJet (jx, jy) (brick: Brick) =
@@ -1016,11 +1019,10 @@ module Day17 =
             | _ -> failwith $"unknown brick num:{n}"
             |> Array.map (fun (x, y) -> int64 x, (int64 y + bottom + 4L))
 
-        let GetNextJet n =
-            jets[n] |> fun c -> if c = '<' then (-1L, 0L) else (1L, 0L)
+        let GetNextJet n = jets[n]
 
         let rec PlayGame brick_num brick jet_num =
-            if brick_num = level then
+            if brick_num >= level then
                 graph |> Array.max
             else
                 // let fast_move = (brick |> Array.last |> snd) - high - 1L
@@ -1046,13 +1048,14 @@ module Day17 =
                 else
                     brick |> Array.iter (fun (x, y) -> graph[int x] <- max graph[int x] y)
                     let brick = GetNextBrick (int (brick_num % 5UL)) (graph |> Array.max)
+                    // printfn $"{brick_num}; %A{graph}"
                     PlayGame (brick_num + 1UL) brick next_jet
 
         PlayGame 1UL (GetNextBrick 0 0) 0
 
     let F1 (input: string[]) = Solution input 2023UL
-    let F2 (input: string[]) = Solution input 2023UL
-    // let F2 (input: string[]) = Solution input 1000000000000UL
+    // let F2 (input: string[]) = Solution input 100UL
+    let F2 (input: string[]) = Solution input 1000000000000UL
 
     [<Fact>]
     let ``Day 17`` () =
