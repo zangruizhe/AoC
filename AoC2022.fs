@@ -967,10 +967,94 @@ module Day16 =
 
         dfs start_time (GetIndex "AA") start_time rate_S player
 
-    let F1 (inputs: string[]) = Solution inputs 30 0
-    let F2 (inputs: string[]) = Solution inputs 26 1
+    let F1 (input: string[]) = Solution input 30 0
+    let F2 (input: string[]) = Solution input 26 1
 
     [<Fact>]
     let ``Day 16`` () =
         "2022_D16.txt" |> AocInput.GetInput |> F1 |> should equal 1720
         "2022_D16.txt" |> AocInput.GetInput |> F2 |> should equal 2582
+
+module Day17 =
+    type Brick = (int64 * int64)[]
+    let ParseInput (s: string) = s.ToCharArray()
+
+    let Solution (input: string[]) level =
+        let jets = input |> Array.collect (fun s -> s.ToCharArray())
+        let graph = Array.create 7 0L
+
+        let MoveByJet (jx, jy) (brick: Brick) =
+            brick
+            |> Array.choose (fun (x, y) ->
+                let tx, ty = (x + jx, y + jy)
+
+                if tx >= 0 && tx < 7 && graph[int tx] < ty then
+                    Some(tx, ty)
+                else
+                    None)
+            |> fun rst -> if rst.Length = brick.Length then rst else brick
+
+        let MoveDown (brick: Brick) : bool * Brick =
+            brick
+            |> Array.choose (fun (x, y) ->
+                let tx, ty = (x, y - 1L)
+
+                if ty > 0 && graph[int tx] < ty then Some(tx, ty) else None)
+            |> fun rst ->
+                if rst.Length = brick.Length then
+                    true, rst
+                else
+                    false, brick
+
+        let GetNextBrick n bottom : Brick =
+            match n with
+            | 0 -> [| (2, 0); (3, 0); (4, 0); (5, 0) |]
+            | 1 -> [| (3, 2); (2, 1); (3, 1); (4, 1); (3, 0) |]
+            | 2 -> [| (4, 2); (4, 1); (2, 0); (3, 0); (4, 0) |]
+            | 3 -> [| (2, 3); (2, 2); (2, 1); (2, 0) |]
+            | 4 -> [| (2, 1); (3, 1); (2, 0); (3, 0) |]
+            | _ -> failwith $"unknown brick num:{n}"
+            |> Array.map (fun (x, y) -> int64 x, (int64 y + bottom + 4L))
+
+        let GetNextJet n =
+            jets[n] |> fun c -> if c = '<' then (-1L, 0L) else (1L, 0L)
+
+        let rec PlayGame brick_num brick jet_num high =
+            if brick_num = level then
+                high
+            else
+                // let fast_move = (brick |> Array.last |> snd) - high - 1L
+                //
+                // let next_jet, jet =
+                //     [| 0L .. fast_move - 1L |]
+                //     |> Array.fold
+                //         (fun (jet_num, pre_jet) i ->
+                //             let next = GetNextJet(jet_num % jets.Length)
+                //             (jet_num + 1) % jets.Length, (fst pre_jet + fst next, snd pre_jet + snd next))
+                //         (jet_num, (0L, 0L))
+                //
+                // let brick = brick |> Array.map (fun (x, y) -> x, y - fast_move)
+
+                let jet = GetNextJet(jet_num % jets.Length)
+                let next_jet = (jet_num + 1) % jets.Length
+                let brick = MoveByJet jet brick
+
+                let good, brick = MoveDown brick
+
+                if good then
+                    PlayGame brick_num brick next_jet high
+                else
+                    brick |> Array.iter (fun (x, y) -> graph[int x] <- max graph[int x] y)
+                    let next_high = max (snd brick[0]) high
+                    let brick = GetNextBrick (int (brick_num % 5UL)) next_high
+                    PlayGame (brick_num + 1UL) brick next_jet next_high
+
+        PlayGame 1UL (GetNextBrick 0 0) 0 0L
+
+    let F1 (input: string[]) = Solution input 2023UL
+    let F2 (input: string[]) = Solution input 1000000000000UL
+
+    [<Fact>]
+    let ``Day 17`` () =
+        "2022_D17.txt" |> AocInput.GetInput |> F1 |> should equal 1720
+        "2022_D17.txt" |> AocInput.GetInput |> F2 |> should equal 2582
