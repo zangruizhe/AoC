@@ -1084,3 +1084,60 @@ module Day17 =
     let ``Day 17`` () =
         "2022_D17.txt" |> AocInput.GetInput |> F1 |> should equal 3219UL
         "2022_D17.txt" |> AocInput.GetInput |> F2 |> should equal 1582758620701UL
+
+module Day18 =
+    type Point = int * int * int
+    let diff = [| (1, 0, 0); (-1, 0, 0); (0, 1, 0); (0, -1, 0); (0, 0, 1); (0, 0, -1) |]
+
+    let Solution (input: string[]) search_area =
+        let points =
+            input
+            |> Array.map (fun s -> s.Split ',' |> (fun p -> (int p[0], int p[1], int p[2])))
+            |> Set.ofArray
+
+        let Out = HashSet<Point>()
+        let In = HashSet<Point>()
+
+        let rec bfs (cur_points: Point[]) (seen: HashSet<Point>) =
+            if cur_points |> Array.exists In.Contains then
+                false
+            elif cur_points |> Array.exists Out.Contains then
+                true
+            elif cur_points.Length = 0 then
+                seen |> Seq.map In.Add |> Seq.toArray |> ignore
+                false
+            elif seen.Count > search_area then
+                seen |> Seq.map Out.Add |> Seq.toArray |> ignore
+                true
+            else
+                let choose =
+                    cur_points |> Array.filter (fun p -> not (seen.Contains p || points.Contains p))
+
+                choose |> Array.map seen.Add |> ignore
+
+                let next =
+                    choose
+                    |> Array.collect (fun (x, y, z) -> diff |> Array.map (fun (dx, dy, dz) -> x + dx, y + dy, z + dz))
+                    |> Array.distinct
+
+                bfs next seen
+
+        points
+        |> Seq.map (fun (x, y, z) ->
+            diff
+            |> Array.filter (fun (dx, dy, dz) ->
+                let seen = HashSet<Point>()
+                bfs [| x + dx, y + dy, z + dz |] seen)
+            |> Array.length)
+        |> Seq.toArray
+        |> Array.sum
+
+
+    let F1 (input: string[]) = Solution input 0
+    let F2 (input: string[]) = Solution input 5000
+
+
+    [<Fact>]
+    let ``Day 18`` () =
+        "2022_D18.txt" |> AocInput.GetInput |> F1 |> should equal 3494
+        "2022_D18.txt" |> AocInput.GetInput |> F2 |> should equal 2062

@@ -18,7 +18,7 @@ let RedirectConsole () =
 [<EntryPoint>]
 let main _ =
     RedirectConsole()
-    "2022_D17.txt" |> AocInput.GetInput |> AoC2022.Day17.F1 |> printfn "%A"
-    "2022_D17.txt" |> AocInput.GetInput |> AoC2022.Day17.F2 |> printfn "%A"
+    "2022_D18.txt" |> AocInput.GetInput |> AoC2022.Day18.F1 |> printfn "%A"
+    "2022_D18.txt" |> AocInput.GetInput |> AoC2022.Day18.F2 |> printfn "%A"
 
     0
