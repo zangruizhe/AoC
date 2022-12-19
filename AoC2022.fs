@@ -1132,10 +1132,8 @@ module Day18 =
             |> Array.length)
         |> Array.sum
 
-
     let F1 (input: string[]) = Solution input 0
     let F2 (input: string[]) = Solution input 5000
-
 
     [<Fact>]
     let ``Day 18`` () =
@@ -1143,7 +1141,118 @@ module Day18 =
         "2022_D18.txt" |> AocInput.GetInput |> F2 |> should equal 2062
 
 module Day19 =
-    let F1 (input: string[]) = 0
+
+    let OreBotI (blue: int[]) = blue[0]
+    let ClayBotI (blue: int[]) = blue[1]
+    let ObsBotI (blue: int[]) = [| blue[2]; blue[3] |]
+    let GeodeBotI (blue: int[]) = [| blue[4]; blue[5] |]
+
+    let ParseInput (input: string) : int[] =
+        input.Split ' '
+        |> fun x -> [| x[6]; x[12]; x[18]; x[21]; x[27]; x[30] |] |> Array.map int
+
+    let Solution (input: string[]) =
+        let blues = input |> Array.map (ParseInput)
+        blues |> Array.iter (printfn "%A")
+        let mem = Dictionary<int * int * int * int * int * int * int * int * int, int>()
+
+        let rec dfs (blue: int[]) (cur_time: int) ore_bot clay_bot obs_bot geode_bot ore_n clay_n obs_n geode_n : int =
+            let key =
+                (cur_time, ore_bot, clay_bot, obs_bot, geode_bot, ore_n, clay_n, obs_n, geode_n)
+
+            printfn "%A" (cur_time, (ore_bot, clay_bot, obs_bot, geode_bot), (ore_n, clay_n, obs_n, geode_n))
+
+
+            if cur_time = 0 then
+                geode_n
+            elif mem.ContainsKey key then
+                mem[key]
+            else
+                let next_ore_n = ore_n + ore_bot
+                let next_clay_n = clay_n + clay_bot
+                let next_obs_n = obs_n + obs_bot
+                let next_geode_n = geode_n + geode_bot
+
+                [ if (let need = GeodeBotI blue in need[0] <= ore_n && need[1] <= obs_n) then
+                      yield
+                          dfs
+                              blue
+                              (cur_time - 1)
+                              (ore_bot + 1)
+                              clay_bot
+                              obs_bot
+                              geode_bot
+                              (next_ore_n - (GeodeBotI blue)[0])
+                              next_clay_n
+                              (next_obs_n - (GeodeBotI blue)[1])
+                              next_geode_n
+
+                  if
+                      geode_bot >= obs_bot
+                      && (let need = ObsBotI blue in need[0] <= ore_n && need[1] <= clay_n)
+                  then
+                      yield
+                          dfs
+                              blue
+                              (cur_time - 1)
+                              ore_bot
+                              clay_bot
+                              (obs_bot + 1)
+                              geode_bot
+                              (next_ore_n - (ObsBotI blue)[0])
+                              (next_clay_n - (ObsBotI blue)[1])
+                              next_obs_n
+                              next_geode_n
+
+                  if obs_bot >= clay_bot && ClayBotI blue <= ore_n then
+                      yield
+                          dfs
+                              blue
+                              (cur_time - 1)
+                              ore_bot
+                              (clay_bot + 1)
+                              obs_bot
+                              geode_bot
+                              (next_ore_n - ClayBotI blue)
+                              next_clay_n
+                              next_obs_n
+                              next_geode_n
+
+                  if clay_bot >= ore_bot && OreBotI blue <= ore_n then
+                      yield
+                          dfs
+                              blue
+                              (cur_time - 1)
+                              (ore_bot + 1)
+                              clay_bot
+                              obs_bot
+                              geode_bot
+                              (next_ore_n - OreBotI blue)
+                              next_clay_n
+                              next_obs_n
+                              next_geode_n
+
+                  yield
+                      dfs
+                          blue
+                          (cur_time - 1)
+                          ore_bot
+                          clay_bot
+                          obs_bot
+                          geode_bot
+                          next_ore_n
+                          next_clay_n
+                          next_obs_n
+                          next_geode_n ]
+                |> List.max
+                |> fun x ->
+                    mem[key] <- x
+                    x
+
+        blues |> Array.map (fun blue -> dfs blue 24 1 0 0 0 0 0 0 0) |> Array.sum
+
+    let F1 (input: string[]) = Solution input
+
     let F2 (input: string[]) = 0
 
 
