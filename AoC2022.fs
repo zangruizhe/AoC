@@ -1123,13 +1123,13 @@ module Day18 =
                 bfs next seen
 
         points
-        |> Seq.map (fun (x, y, z) ->
+        |> Seq.toArray
+        |> Array.map (fun (x, y, z) ->
             diff
             |> Array.filter (fun (dx, dy, dz) ->
                 let seen = HashSet<Point>()
                 bfs [| x + dx, y + dy, z + dz |] seen)
             |> Array.length)
-        |> Seq.toArray
         |> Array.sum
 
 
@@ -1141,3 +1141,13 @@ module Day18 =
     let ``Day 18`` () =
         "2022_D18.txt" |> AocInput.GetInput |> F1 |> should equal 3494
         "2022_D18.txt" |> AocInput.GetInput |> F2 |> should equal 2062
+
+module Day19 =
+    let F1 (input: string[]) = 0
+    let F2 (input: string[]) = 0
+
+
+    [<Fact>]
+    let ``Day 19`` () =
+        "2022_D19.txt" |> AocInput.GetInput |> F1 |> should equal 3494
+        "2022_D19.txt" |> AocInput.GetInput |> F2 |> should equal 2062
