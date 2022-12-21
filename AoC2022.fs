@@ -1156,11 +1156,23 @@ module Day19 =
         blues |> Array.iter (printfn "%A")
         let mem = Dictionary<int * int * int * int * int * int * int * int * int, int>()
 
-        let rec dfs (blue: int[]) (cur_time: int) ore_bot clay_bot obs_bot geode_bot ore_n clay_n obs_n geode_n : int =
+        let rec dfs
+            (blue: int[])
+            (max_need: int[])
+            (cur_time: int)
+            ore_bot
+            clay_bot
+            obs_bot
+            geode_bot
+            ore_n
+            clay_n
+            obs_n
+            geode_n
+            : int =
             let key =
                 (cur_time, ore_bot, clay_bot, obs_bot, geode_bot, ore_n, clay_n, obs_n, geode_n)
 
-            printfn "%A" (cur_time, (ore_bot, clay_bot, obs_bot, geode_bot), (ore_n, clay_n, obs_n, geode_n))
+            // printfn "%A" (cur_time, (ore_bot, clay_bot, obs_bot, geode_bot), (ore_n, clay_n, obs_n, geode_n))
 
 
             if cur_time = 0 then
@@ -1168,32 +1180,31 @@ module Day19 =
             elif mem.ContainsKey key then
                 mem[key]
             else
-                let next_ore_n = ore_n + ore_bot
-                let next_clay_n = clay_n + clay_bot
-                let next_obs_n = obs_n + obs_bot
+                let next_ore_n = min (ore_n + ore_bot) max_need[0]
+                let next_clay_n = min (clay_n + clay_bot) max_need[1]
+                let next_obs_n = min (obs_n + obs_bot) max_need[2]
                 let next_geode_n = geode_n + geode_bot
 
                 [ if (let need = GeodeBotI blue in need[0] <= ore_n && need[1] <= obs_n) then
                       yield
                           dfs
                               blue
+                              max_need
                               (cur_time - 1)
-                              (ore_bot + 1)
+                              ore_bot
                               clay_bot
                               obs_bot
-                              geode_bot
+                              (geode_bot + 1)
                               (next_ore_n - (GeodeBotI blue)[0])
                               next_clay_n
                               (next_obs_n - (GeodeBotI blue)[1])
                               next_geode_n
 
-                  if
-                      geode_bot >= obs_bot
-                      && (let need = ObsBotI blue in need[0] <= ore_n && need[1] <= clay_n)
-                  then
+                  if (let need = ObsBotI blue in need[0] <= ore_n && need[1] <= clay_n) then
                       yield
                           dfs
                               blue
+                              max_need
                               (cur_time - 1)
                               ore_bot
                               clay_bot
@@ -1204,10 +1215,11 @@ module Day19 =
                               next_obs_n
                               next_geode_n
 
-                  if obs_bot >= clay_bot && ClayBotI blue <= ore_n then
+                  if ClayBotI blue <= ore_n then
                       yield
                           dfs
                               blue
+                              max_need
                               (cur_time - 1)
                               ore_bot
                               (clay_bot + 1)
@@ -1218,10 +1230,11 @@ module Day19 =
                               next_obs_n
                               next_geode_n
 
-                  if clay_bot >= ore_bot && OreBotI blue <= ore_n then
+                  if OreBotI blue <= ore_n then
                       yield
                           dfs
                               blue
+                              max_need
                               (cur_time - 1)
                               (ore_bot + 1)
                               clay_bot
@@ -1235,6 +1248,7 @@ module Day19 =
                   yield
                       dfs
                           blue
+                          max_need
                           (cur_time - 1)
                           ore_bot
                           clay_bot
@@ -1249,7 +1263,16 @@ module Day19 =
                     mem[key] <- x
                     x
 
-        blues |> Array.map (fun blue -> dfs blue 24 1 0 0 0 0 0 0 0) |> Array.sum
+        blues
+        |> Array.map (fun blue ->
+            let max_need =
+                [| [| blue[0]; blue[1]; blue[2]; blue[4] |] |> Array.max; blue[3]; blue[5] |]
+
+            printfn "%A" max_need
+            dfs blue max_need 24 1 0 0 0 0 0 0 0)
+        |> XLOG
+        |> Array.mapi (fun i v -> (i + 1) * v)
+        |> Array.sum
 
     let F1 (input: string[]) = Solution input
 
