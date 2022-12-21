@@ -1141,145 +1141,98 @@ module Day18 =
         "2022_D18.txt" |> AocInput.GetInput |> F2 |> should equal 2062
 
 module Day19 =
+    type BluePrint = (int * int)[][]
 
-    let OreBotI (blue: int[]) = blue[0]
-    let ClayBotI (blue: int[]) = blue[1]
-    let ObsBotI (blue: int[]) = [| blue[2]; blue[3] |]
-    let GeodeBotI (blue: int[]) = [| blue[4]; blue[5] |]
-
-    let ParseInput (input: string) : int[] =
+    let ParseInput (input: string) : BluePrint =
         input.Split ' '
-        |> fun x -> [| x[6]; x[12]; x[18]; x[21]; x[27]; x[30] |] |> Array.map int
+        |> fun x ->
+            [| [| (0, int x[6]) |]
+               [| (0, int x[12]) |]
+               [| (0, int x[18]); (1, int x[21]) |]
+               [| (0, int x[27]); (2, int x[30]) |] |]
 
-    let Solution (input: string[]) =
+    let Max (bps: BluePrint) =
+        bps
+        |> Array.fold
+            (fun (rst: int[]) x ->
+                x |> Array.iter (fun (i, v) -> rst[i] <- max rst[i] v)
+                rst)
+            (Array.create 3 0)
+
+
+    let Solution time (input: string[]) =
         let blues = input |> Array.map (ParseInput)
         blues |> Array.iter (printfn "%A")
-        let mem = Dictionary<int * int * int * int * int * int * int * int * int, int>()
 
-        let rec dfs
-            (blue: int[])
-            (max_need: int[])
-            (cur_time: int)
-            ore_bot
-            clay_bot
-            obs_bot
-            geode_bot
-            ore_n
-            clay_n
-            obs_n
-            geode_n
-            : int =
-            let key =
-                (cur_time, ore_bot, clay_bot, obs_bot, geode_bot, ore_n, clay_n, obs_n, geode_n)
+        let mem = Dictionary<(int[]) * (int[]) * int, int>()
 
-            // printfn "%A" (cur_time, (ore_bot, clay_bot, obs_bot, geode_bot), (ore_n, clay_n, obs_n, geode_n))
-
-
-            if cur_time = 0 then
-                geode_n
-            elif mem.ContainsKey key then
-                mem[key]
+        let rec dfs (blue: BluePrint) (max_need: int[]) (bots: int[]) (amt: int[]) (time: int) =
+            if time = 0 then
+                amt[3]
             else
-                let next_ore_n = min (ore_n + ore_bot) max_need[0]
-                let next_clay_n = min (clay_n + clay_bot) max_need[1]
-                let next_obs_n = min (obs_n + obs_bot) max_need[2]
-                let next_geode_n = geode_n + geode_bot
+                let key = (bots, amt, time)
+                // printfn "%A" key
 
-                [ if (let need = GeodeBotI blue in need[0] <= ore_n && need[1] <= obs_n) then
-                      yield
-                          dfs
-                              blue
-                              max_need
-                              (cur_time - 1)
-                              ore_bot
-                              clay_bot
-                              obs_bot
-                              (geode_bot + 1)
-                              (next_ore_n - (GeodeBotI blue)[0])
-                              next_clay_n
-                              (next_obs_n - (GeodeBotI blue)[1])
-                              next_geode_n
+                if mem.ContainsKey key then
+                    mem[key]
+                else
+                    blue
+                    |> Array.mapi (fun i recip ->
+                        if i <> 3 && bots[i] >= max_need[i] then
+                            0
+                        else
+                            recip
+                            |> Array.choose (fun (t, v) ->
+                                if bots[t] = 0 then
+                                    None
+                                else
+                                    let t = Math.Ceiling(double (v - amt[t]) / double (bots[t])) |> int
+                                    if t <= 0 then Some 0 else Some t)
+                            |> (fun x ->
+                                if x.Length < recip.Length then
+                                    0
+                                else
+                                    let wait = x |> Array.max
+                                    let rem_time = time - wait - 1
 
-                  if (let need = ObsBotI blue in need[0] <= ore_n && need[1] <= clay_n) then
-                      yield
-                          dfs
-                              blue
-                              max_need
-                              (cur_time - 1)
-                              ore_bot
-                              clay_bot
-                              (obs_bot + 1)
-                              geode_bot
-                              (next_ore_n - (ObsBotI blue)[0])
-                              (next_clay_n - (ObsBotI blue)[1])
-                              next_obs_n
-                              next_geode_n
+                                    if rem_time <= 0 then
+                                        0
+                                    else
+                                        let next_bot = Array.copy bots
 
-                  if ClayBotI blue <= ore_n then
-                      yield
-                          dfs
-                              blue
-                              max_need
-                              (cur_time - 1)
-                              ore_bot
-                              (clay_bot + 1)
-                              obs_bot
-                              geode_bot
-                              (next_ore_n - ClayBotI blue)
-                              next_clay_n
-                              next_obs_n
-                              next_geode_n
+                                        let next_amt =
+                                            (amt, next_bot)
+                                            ||> Array.zip
+                                            |> Array.map (fun (a, b) -> a + b * (wait + 1))
 
-                  if OreBotI blue <= ore_n then
-                      yield
-                          dfs
-                              blue
-                              max_need
-                              (cur_time - 1)
-                              (ore_bot + 1)
-                              clay_bot
-                              obs_bot
-                              geode_bot
-                              (next_ore_n - OreBotI blue)
-                              next_clay_n
-                              next_obs_n
-                              next_geode_n
+                                        recip |> Array.iter (fun (t, v) -> next_amt[t] <- next_amt[t] - v)
+                                        next_bot[i] <- next_bot[i] + 1
 
-                  yield
-                      dfs
-                          blue
-                          max_need
-                          (cur_time - 1)
-                          ore_bot
-                          clay_bot
-                          obs_bot
-                          geode_bot
-                          next_ore_n
-                          next_clay_n
-                          next_obs_n
-                          next_geode_n ]
-                |> List.max
-                |> fun x ->
-                    mem[key] <- x
-                    x
+                                        for i in 0..2 do
+                                            next_amt[i] <- min (next_amt[i]) (max_need[i] * rem_time)
+
+                                        dfs blue max_need next_bot next_amt rem_time))
+                    |> Array.max
+                    |> fun rst ->
+                        let tmp = max (amt[3] + bots[3] * time) rst
+                        mem[key] <- tmp
+                        tmp
+
 
         blues
         |> Array.map (fun blue ->
-            let max_need =
-                [| [| blue[0]; blue[1]; blue[2]; blue[4] |] |> Array.max; blue[3]; blue[5] |]
-
+            let max_need = Max blue
             printfn "%A" max_need
-            dfs blue max_need 24 1 0 0 0 0 0 0 0)
-        |> XLOG
-        |> Array.mapi (fun i v -> (i + 1) * v)
-        |> Array.sum
+            dfs blue max_need [| 1; 0; 0; 0 |] [| 0; 0; 0; 0 |] time)
 
-    let F1 (input: string[]) = Solution input
+    let F1 (input: string[]) =
+        Solution 24 input |> XLOG |> Array.mapi (fun i v -> (i + 1) * v) |> Array.sum
 
-    let F2 (input: string[]) = 0
+    let F2 (input: string[]) =
+        input |> Array.take 3 |> Solution 32 |> XLOG |> Array.reduce (*)
 
 
     [<Fact>]
     let ``Day 19`` () =
-        "2022_D19.txt" |> AocInput.GetInput |> F1 |> should equal 3494
+        "2022_D19.txt" |> AocInput.GetInput |> F1 |> should equal 1192
         "2022_D19.txt" |> AocInput.GetInput |> F2 |> should equal 2062
