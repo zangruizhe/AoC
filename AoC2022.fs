@@ -1235,4 +1235,4 @@ module Day19 =
     [<Fact>]
     let ``Day 19`` () =
         "2022_D19.txt" |> AocInput.GetInput |> F1 |> should equal 1192
-        "2022_D19.txt" |> AocInput.GetInput |> F2 |> should equal 2062
+        "2022_D19.txt" |> AocInput.GetInput |> F2 |> should equal 14725
