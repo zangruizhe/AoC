@@ -8,10 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FsUnit" Version="5.0.3" />
-        <PackageReference Include="FsUnit.xUnit" Version="5.0.4" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-        <PackageReference Include="xunit" Version="2.4.2" />
+        <PackageReference Include="FsUnit" Version="5.0.3"/>
+        <PackageReference Include="FsUnit.xUnit" Version="5.0.4"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0"/>
+        <PackageReference Include="xunit" Version="2.4.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -20,38 +20,16 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="XunitContext" Version="3.2.5" />
+        <PackageReference Include="XunitContext" Version="3.2.5"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="input.fs" />
-        <Compile Include="AoC2019.fs" />
-        <Compile Include="AoC2021.fs" />
-        <Compile Include="AoC2022.fs" />
-        <Compile Include="Program.fs" />
-        <Content Include="data\2019_D6.txt" />
-        <Content Include="data\2022_D15.txt" />
-        <Content Include="data\2022_D14.txt" />
-        <Content Include="data\2022_D10.txt" />
-        <Content Include="data\2022_D11.txt" />
-        <Content Include="data\2022_D8.txt" />
-        <Content Include="data\2022_D13.txt" />
-        <Content Include="data\2022_D12.txt" />
-        <Content Include="data\2022_D9.txt" />
-        <Content Include="data\2021_D3.txt" />
-        <Content Include="data\2021_D4.txt" />
-        <Content Include="data\2019_D8.txt" />
-        <Content Include="data\2022_D4.txt" />
-        <Content Include="data\2022_D5.txt" />
-        <Content Include="data\2022_D7.txt" />
-        <Content Include="data\2022_D6.txt" />
-        <Content Include="data\2022_D2.txt" />
-        <Content Include="data\2022_D3.txt" />
-        <Content Include="data\2022_D1.txt" />
-        <Content Include="data\2022_D16.txt" />
-        <Content Include="data\2022_D17.txt" />
-        <Content Include="data\2022_D18.txt" />
-        <Content Include="data\2022_D19.txt" />
+        <Compile Include="input.fs"/>
+        <!--        <Compile Include="AoC2019.fs"/>-->
+        <!--        <Compile Include="AoC2021.fs"/>-->
+        <!--        <Compile Include="AoC2022.fs"/>-->
+        <Compile Include="AoC2023.fs"/>
+        <Compile Include="Program.fs"/>
     </ItemGroup>
 
 </Project>

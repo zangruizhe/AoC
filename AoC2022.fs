@@ -8,12 +8,6 @@ open Xunit
 open Xunit.Abstractions
 open System.Collections.Generic
 
-let XLOG x =
-    printfn $"%A{x}"
-    x
-
-let LOG x = printfn $"%A{x}"
-
 type Day1(output: ITestOutputHelper) =
     do new AocInput.Converter(output) |> Console.SetOut
 
@@ -217,7 +211,7 @@ module Day5 =
 
 module Day6 =
     let GetIndex (input: string[]) (req: int) : int =
-        let s = input.[0]
+        let s = input[0]
         let mem = Dictionary<char, int>()
 
         let rec Window l r =
@@ -249,7 +243,7 @@ module Day6 =
     let F2 (input: string[]) : int =
         let i1 = GetIndex input 4
 
-        i1 + GetIndex (input.[0][i1..] |> Array.singleton) 14
+        i1 + GetIndex (input[0][i1..] |> Array.singleton) 14
 
     [<Fact>]
     let ``Day 6`` () =
@@ -313,7 +307,7 @@ module Day7 =
                         let tmp = GetSize(path)
                         Mem.Add(path, tmp)
                         tmp
-                    | FILE (_, size) -> size
+                    | FILE(_, size) -> size
                     |> (+) pre)
                 0
         | false -> failwith $"can not find dir:{dir}"
@@ -504,7 +498,7 @@ module Day10 =
                 else
                     v, v :: rst
 
-                )
+            )
             (1, [])
         |> snd
         |> List.rev
@@ -546,15 +540,16 @@ module Day11 =
             let tmp = s.Split '\n'
 
             let item =
-                tmp[1].Split(':').[1]
-                    .Split([| ' '; ',' |], StringSplitOptions.RemoveEmptyEntries)
+                tmp[1]
+                    .Split(':')
+                    .[1].Split([| ' '; ',' |], StringSplitOptions.RemoveEmptyEntries)
                 |> Array.map uint64
                 |> Array.toList
 
-            let op, op_v = let x = tmp[ 2 ].Split(' ') in x[x.Length - 2], x[x.Length - 1]
-            let div_v = tmp[ 3 ].Split(' ') |> Array.last |> uint64
-            let path1 = tmp[ 4 ].Split(' ') |> Array.last |> int
-            let path2 = tmp[ 5 ].Split(' ') |> Array.last |> int
+            let op, op_v = let x = tmp[2].Split(' ') in x[x.Length - 2], x[x.Length - 1]
+            let div_v = tmp[3].Split(' ') |> Array.last |> uint64
+            let path1 = tmp[4].Split(' ') |> Array.last |> int
+            let path2 = tmp[5].Split(' ') |> Array.last |> int
             (item, div_v), Operator op op_v div_v path1 path2)
 
     let Solve start_v (monkey_op: ((uint64 -> uint64) -> uint64 -> int * uint64)[]) relief loop_len =
@@ -683,7 +678,7 @@ module Day13 =
         | LIST [], LIST [] -> None
         | LIST [], LIST _ -> Some true
         | LIST _, LIST [] -> Some false
-        | LIST (l :: lt), LIST (r :: rt) ->
+        | LIST(l :: lt), LIST(r :: rt) ->
             match Compare l r with
             | Some v -> Some v
             | None -> Compare (LIST lt) (LIST rt)
@@ -796,7 +791,7 @@ module Day14 =
 
         rocks |> Array.iter (fun (x, y) -> matrix[y][x - min_x] <- '#')
 
-        for i in 0 .. matrix.[0].Length - 1 do
+        for i in 0 .. matrix[0].Length - 1 do
             matrix[matrix.Length - 1][i] <- '#'
 
         PlayGame matrix (500 - min_x) 1
@@ -912,12 +907,12 @@ module Day16 =
         for i in 0 .. N - 1 do
             connects[i] |> Array.iter (fun j -> graph[GetIndex keys[i]][GetIndex j] <- 1)
 
-        let Good = rate |> Array.indexed |> Array.filter (fun (i, v) -> v > 0)
+        let Good = rate |> Array.indexed |> Array.filter (fun (_, v) -> v > 0)
         Good |> Array.iter (fun (i, v) -> printfn $"{keys[i]}={v}")
 
         let GoodIndex =
             let cache = Dictionary<int, int>()
-            Good |> Array.iteri (fun j (i, v) -> cache[i] <- j)
+            Good |> Array.iteri (fun j (i, _) -> cache[i] <- j)
             cache
 
         let GetGoodIndex x = GoodIndex[x]
@@ -1161,17 +1156,16 @@ module Day19 =
 
 
     let Solution time (input: string[]) =
-        let blues = input |> Array.map (ParseInput)
+        let blues = input |> Array.map ParseInput
         blues |> Array.iter (printfn "%A")
 
-        let mem = Dictionary<(int[]) * (int[]) * int, int>()
+        let mem = Dictionary<int[] * int[] * int, int>()
 
         let rec dfs (blue: BluePrint) (max_need: int[]) (bots: int[]) (amt: int[]) (time: int) =
             if time = 0 then
                 amt[3]
             else
                 let key = (bots, amt, time)
-                // printfn "%A" key
 
                 if mem.ContainsKey key then
                     mem[key]
@@ -1222,7 +1216,7 @@ module Day19 =
         blues
         |> Array.map (fun blue ->
             let max_need = Max blue
-            printfn "%A" max_need
+            printfn $"%A{max_need}"
             dfs blue max_need [| 1; 0; 0; 0 |] [| 0; 0; 0; 0 |] time)
 
     let F1 (input: string[]) =

@@ -342,3 +342,4 @@ plz-out
 .paket
 GeneratedSource
 tests/leetcode_cpp/cmake-build-debug
+aoc_input.txt
