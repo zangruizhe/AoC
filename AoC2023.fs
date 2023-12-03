@@ -37,8 +37,8 @@ module Day3 =
         let base_bag = [ ("red", 0); ("green", 0); ("blue", 0) ] |> Map.ofList
 
         parsed
-        |> Array.map (fun game ->
-            game
+        |> Array.map (fun one_game ->
+            one_game
             |> Seq.fold
                 (fun update_bag one_round ->
                     one_round
