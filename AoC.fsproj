@@ -28,7 +28,6 @@
         <!--        <Compile Include="AoC2019.fs"/>-->
         <!--        <Compile Include="AoC2021.fs"/>-->
         <!--        <Compile Include="AoC2022.fs"/>-->
-        <Compile Include="AoC2023.fs"/>
         <Compile Include="Program.fs"/>
     </ItemGroup>
 
