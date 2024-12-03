@@ -24,11 +24,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="input.fs"/>
         <None Include="AoC2019.fs"/>
         <None Include="AoC2021.fs"/>
         <None Include="AoC2022.fs"/>
-        <None Include="Program.fs"/>
         <None Include="AoC2023.fsx" />
         <None Include="AoC2024.fsx" />
         <Content Include="test.in" />
