@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
 
         <IsPackable>false</IsPackable>
         <GenerateProgramFile>false</GenerateProgramFile>
@@ -28,7 +28,7 @@
         <None Include="AoC2021.fs"/>
         <None Include="AoC2022.fs"/>
         <None Include="AoC2023.fsx" />
-        <None Include="AoC2024.fsx" />
+        <Compile Include="AoC2024.fs" />
         <Content Include="test.in" />
         <Content Include="test.out" />
     </ItemGroup>

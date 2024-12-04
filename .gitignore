@@ -343,3 +343,4 @@ plz-out
 GeneratedSource
 tests/leetcode_cpp/cmake-build-debug
 aoc_input.txt
+test.in

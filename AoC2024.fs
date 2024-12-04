@@ -1,6 +1,7 @@
 ﻿open System
 open System.Collections.Generic
 open System.IO
+open System.Text.RegularExpressions
 open Microsoft.FSharp.Collections
 
 type Index = int * int
@@ -31,10 +32,10 @@ let RedirectConsole () =
     let sin = new StreamReader(if_stream)
     Console.SetIn(sin)
     
-    let of_stream = new FileStream("test.out", FileMode.Create, FileAccess.Write)
-    let sout = new StreamWriter(of_stream)
-    sout.AutoFlush <- true
-    Console.SetOut(sout)
+    // let of_stream = new FileStream("test.out", FileMode.Create, FileAccess.Write)
+    // let sout = new StreamWriter(of_stream)
+    // sout.AutoFlush <- true
+    // Console.SetOut(sout)
 
 let ReadInputV2 () : string[] =
     let rec loop acc =
@@ -57,15 +58,29 @@ let ReadInput () : string[] =
 // let Join<'t> (src: 't []) : string =
 //     src |> Array.map string |> String.concat " "
 
-let Split2Str (src: string) : string[] = src.Split(" ")
-let Split2Int (src: string) : int[] = src |> Split2Str |> Array.map int
+let split2Str (src: string) : string[] = src.Split(" ")
+let split2Int (src: string) : int[] = src |> split2Str |> Array.map int
+let split2IntByReg (patten: string) (src:string) = 
+    let reg = Regex.Matches(src, patten)
+
+    reg
+    |> Seq.map (fun m -> m.Groups[1].Value |> int)
+    |> Seq.toArray
 
 module Solve =
     let Solution (lines: string[]) =
-        Array.append [| "from F#" |] lines
+        let nums = lines |> Array.map (split2IntByReg "(\d+)")
+        let l = ResizeArray<int>()
+        let r = ResizeArray<int>()
+        nums |> Array.iter(fun n ->
+                           l.Add(n[0])
+                           r.Add(n[1]))
+        l.Sort()
+        r.Sort()
+        (l, r) ||> Seq.map2 (fun l r -> r - l) |> Seq.sum
 
 
 RedirectConsole()
 let start = DateTime.Now
-ReadInput() |> Solve.Solution |> Seq.iter (printfn "%s")
+ReadInput() |> Solve.Solution |>(fun x -> printfn $"{x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
