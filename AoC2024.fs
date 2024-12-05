@@ -206,7 +206,6 @@ module Day5 =
 
         rules_dict, updates
 
-    // let parseRule s =
     let isGood (rules_dict: Dictionary<int, HashSet<int>>) nums =
         let tmp_set = HashSet<int>()
 
