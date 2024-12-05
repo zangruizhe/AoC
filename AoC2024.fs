@@ -3,6 +3,7 @@ open System.Collections.Generic
 open System.IO
 open System.Text.RegularExpressions
 open Microsoft.FSharp.Collections
+open NHamcrest
 
 type Index = int * int
 type ll = int64
@@ -30,6 +31,8 @@ let split2Str (split: string) (src: string) : string[] =
     src.Split(split, StringSplitOptions.RemoveEmptyEntries)
 
 let split2Int (src: string) : int[] = src |> split2Str " " |> Array.map int
+
+let split2IntBySplit (split: string) (src: string) : int[] = src |> split2Str split |> Array.map int
 
 let splitByReg (patten: string) (src: string) =
     let reg = Regex.Matches(src, patten)
@@ -146,8 +149,7 @@ module Day4 =
             [ for i in 0 .. R - 1 do
                   for j in 0 .. C - 1 do
                       if lines[i][j] = word[0] then
-                          check i j
-              ]
+                          check i j ]
             |> List.sum
 
         rst
@@ -183,6 +185,64 @@ module Day4 =
 
         rst
 
+module Day5 =
+    let init (lines: string[]) =
+        let i = lines |> Array.findIndex (fun s -> s.Length = 0)
+        let rules = lines[.. i - 1]
+        let updates = lines[i + 1 ..] |> Array.map (split2IntBySplit ",")
+        let rules_dict = Dictionary<int, HashSet<int>>()
+
+        rules
+        |> Array.iter (fun s ->
+            s
+            |> split2IntBySplit "|"
+            |> fun nums ->
+                let b = nums[0]
+
+                if not (rules_dict.ContainsKey(b)) then
+                    rules_dict[b] <- HashSet()
+
+                rules_dict[b].Add(nums[1]) |> ignore)
+
+        rules_dict, updates
+
+    // let parseRule s =
+    let isGood (rules_dict: Dictionary<int, HashSet<int>>) nums =
+        let tmp_set = HashSet<int>()
+
+        nums
+        |> Array.exists (fun n ->
+            tmp_set.Add(n) |> ignore
+            tmp_set.Overlaps(rules_dict.GetValueOrDefault(n, HashSet<int>())))
+        |> not
+
+    let Q1 (lines: string[]) =
+        let rules_dict, updates = init lines
+        let good = updates |> Array.filter (isGood rules_dict)
+        good |> Array.sumBy (fun nums -> nums[nums.Length / 2])
+
+    let Q2 (lines: string[]) =
+        let rules_dict, updates = init lines
+        let rec fix_bad (nums: vi) (rst: int list) =
+            if nums.Length = 0 then
+                rst
+            else
+                let next_i =
+                    nums
+                    |> Array.findIndex (fun n ->
+                        nums
+                        |> Array.except [ n ]
+                        |> Array.exists (fun other -> rules_dict.GetValueOrDefault(other, HashSet<int>()).Contains(n))
+                        |> not)
+
+                fix_bad (nums |> Array.removeAt next_i) (nums[next_i] :: rst)
+
+
+        let bad = updates |> Array.filter (fun nums -> isGood rules_dict nums |> not)
+
+        bad
+        |> Array.map (fun nums -> fix_bad nums [])
+        |> Array.sumBy (fun nums -> nums[nums.Length / 2])
 
 module Day =
     let init (lines: string[]) = lines |> Array.map split2Int
@@ -197,6 +257,6 @@ module Day =
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-lines |> Day4.Q1 |> (fun x -> printfn $"Q1={x}")
-lines |> Day4.Q2 |> (fun x -> printfn $"Q2={x}")
+lines |> Day5.Q1 |> (fun x -> printfn $"Q1={x}")
+lines |> Day5.Q2 |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
