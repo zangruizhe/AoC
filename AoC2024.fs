@@ -250,6 +250,7 @@ type Day6(lines: string[]) =
     let getStart (lines: string[]) =
         lines
         |> Array.indexed
+        // |> Array.pick (fun (i, s) -> s |> Seq.tryFindIndex ((=) '^') |> Option.map (fun j -> (i, j)))
         |> Array.pick (fun (i, s) ->
             let j = s.IndexOf("^")
             if j <> -1 then Some(i, j) else None)
