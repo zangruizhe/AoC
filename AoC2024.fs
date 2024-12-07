@@ -279,7 +279,7 @@ type Day6(lines: string[]) =
         let start: Index = getStart lines
         let pos_set = moving (fst start) (snd start) 0 (HashSet())
         pos_set.Remove(start) |> ignore
-        let inLoop (pos_set: HashSet<int * int * int>) i j op = pos_set.Add((i, j, op)) = false
+        let isInLoop (pos_set: HashSet<int * int * int>) i j op = pos_set.Add((i, j, op)) = false
 
         let rec checkLoop i j op (pos_set: HashSet<int * int * int>) =
 
@@ -289,7 +289,7 @@ type Day6(lines: string[]) =
             if next_i < 0 || next_i >= R || next_j < 0 || next_j >= C then
                 false
             elif lines[next_i][next_j] = '#' then
-                if inLoop pos_set i j op then
+                if isInLoop pos_set i j op then
                     true
                 else
                     checkLoop i j ((op + 1) % 4) pos_set
