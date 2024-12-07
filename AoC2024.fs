@@ -39,7 +39,7 @@ let splitByReg (patten: string) (src: string) =
 let split2IntByReg (patten: string) (src: string) =
     let rst =
         splitByReg patten src
-        |> Array.map (fun g -> g |> Seq.skip 1 |> Seq.map (fun g -> int g.Value) |> Seq.toArray)
+        |> Array.map (fun g -> g |> Seq.skip 1 |> Seq.map (fun g -> int64 g.Value) |> Seq.toArray)
 
     rst
 
@@ -270,12 +270,12 @@ type Day6(lines: string[]) =
             moving next_i next_j op pos_set
 
 
-    member this.Q1(lines: string[]) =
+    member this.Q1() =
         let start: Index = getStart lines
         let post_set = moving (fst start) (snd start) 0 (HashSet())
         post_set.Count
 
-    member this.Q2(lines: string[]) =
+    member this.Q2() =
         let start: Index = getStart lines
         let pos_set = moving (fst start) (snd start) 0 (HashSet())
         pos_set.Remove(start) |> ignore
@@ -309,20 +309,58 @@ type Day6(lines: string[]) =
         |> Seq.length
 
 
-module Day =
-    let init (lines: string[]) = lines |> Array.map split2Int
+type Day7(lines: string[]) =
+    member this.Q1() =
+        let canEvaluated (nums: int64 array) =
+            let target = nums[0]
+            let nums = nums[1..] |> List.ofArray
 
-    let Q1 (lines: string[]) =
-        let lines = init lines
-        0
+            let rec check nums cur =
+                if cur > target then
+                    false
+                else
+                    match nums with
+                    | [] -> cur = target
+                    | n :: t -> check t (n + cur) || check t (n * cur)
 
-    let Q2 (lines: string[]) =
-        let lines = init lines
-        0
+            check (List.tail nums) (List.head nums)
+
+
+        lines
+        |> Array.map (split2IntByReg @"(\d+)" >> Array.concat)
+        |> Array.filter canEvaluated
+        |> Array.sumBy (fun nums -> nums[0])
+
+    member this.Q2() =
+        let canEvaluated (nums: int64 array) =
+            let target = nums[0]
+            let nums = nums[1..] |> List.ofArray
+
+            let rec check nums cur =
+                if cur > target then
+                    false
+                else
+                    match nums with
+                    | [] -> cur = target
+                    | n :: t -> check t (n + cur) || check t (n * cur) || check t ($"{cur}{n}" |> int64)
+
+            check (List.tail nums) (List.head nums)
+
+
+        lines
+        |> Array.map (split2IntByReg @"(\d+)" >> Array.concat)
+        |> Array.filter canEvaluated
+        |> Array.sumBy (fun nums -> nums[0])
+
+
+type Day(lines: string[]) =
+    member this.Q1() = 0
+
+    member this.Q2() = 0
 
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-lines |> Day6(lines).Q1 |> (fun x -> printfn $"Q1={x}")
-lines |> Day6(lines).Q2 |> (fun x -> printfn $"Q2={x}")
+Day7(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day7(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
