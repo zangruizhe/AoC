@@ -376,25 +376,30 @@ type Day8(lines: string[]) =
               for j in i + 1 .. idx_list.Length - 1 do
                   (idx_list[i], idx_list[j]) ]
 
+    let getAntinodes op (a: Index) (b: Index) : Index list =
+        let ar, ac = a
+        let br, bc = b
+
+        let x = abs (ar - br)
+        let y = abs (ac - bc)
+
+        match ar < br, ac < bc with
+        | true, true -> (-x, -y), (x, y)
+        | true, false -> (-x, y), (x, -y)
+        | false, true -> (x, -y), (-x, y)
+        | false, false -> (x, y), (-x, -y)
+        |> fun (d1, d2) -> op a d1 @ op b d2
+
     member this.Q1() =
         let points_dict = lines |> getPoints
-
-        let getAntinodes (a: Index) (b: Index) : Index list =
-            let ar, ac = a
-            let br, bc = b
-
-            let x = abs (ar - br)
-            let y = abs (ac - bc)
-
-            match ar < br, ac < bc with
-            | true, true -> [ (ar - x, ac - y); (br + x, bc + y) ]
-            | true, false -> [ (ar - x, ac + y); (br + x, bc - y) ]
-            | false, true -> [ (ar + x, ac - y); (br - x, bc + y) ]
-            | false, false -> [ (ar + x, ac + y); (br - x, bc - y) ]
+        let getAntIdx (ar, ac) (dr, dc) = [ (ar + dr, ac + dc) ]
 
         points_dict.Values
         |> Array.ofSeq
-        |> Seq.collect (fun idx_list -> idx_list |> getIdxPair |> List.collect (fun (l, r) -> getAntinodes l r))
+        |> Seq.collect (fun idx_list ->
+            idx_list
+            |> getIdxPair
+            |> List.collect (fun (l, r) -> getAntinodes getAntIdx l r))
         |> Seq.filter inBoard
         |> Set.ofSeq
         |> Seq.length
@@ -402,7 +407,7 @@ type Day8(lines: string[]) =
     member this.Q2() =
         let points_dict = lines |> getPoints
 
-        let getAntinodesInLine (ar, ac) x y =
+        let getAntinodesInLine (ar, ac) (x, y) =
             let rec loop (ar, ac) x y rst =
                 if not (inBoard (ar, ac)) then
                     rst
@@ -411,22 +416,12 @@ type Day8(lines: string[]) =
 
             loop (ar, ac) x y []
 
-        let getAntinodes (a: Index) (b: Index) : Index list =
-            let ar, ac = a
-            let br, bc = b
-
-            let x = abs (ar - br)
-            let y = abs (ac - bc)
-
-            match ar < br, ac < bc with
-            | true, true -> getAntinodesInLine a -x -y @ getAntinodesInLine b x y
-            | true, false -> getAntinodesInLine a -x y @ getAntinodesInLine b x -y
-            | false, true -> getAntinodesInLine a x -y @ getAntinodesInLine b -x y
-            | false, false -> getAntinodesInLine a x y @ getAntinodesInLine b -x -y
-
         points_dict.Values
         |> Array.ofSeq
-        |> Seq.collect (fun idx_list -> idx_list |> getIdxPair |> List.collect (fun (l, r) -> getAntinodes l r))
+        |> Seq.collect (fun idx_list ->
+            idx_list
+            |> getIdxPair
+            |> List.collect (fun (l, r) -> getAntinodes getAntinodesInLine l r))
         |> Set.ofSeq
         |> Seq.length
 
