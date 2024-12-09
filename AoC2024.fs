@@ -25,6 +25,9 @@ let pi: double = 3.14159265358979323846
 let tmp_dict = Dictionary<int, int>()
 let tmp_set = HashSet<int>()
 
+let char2Int (c: char) = int c - int '0'
+let int2Char (i: int) = Convert.ToChar i
+
 let split2Str (split: string) (src: string) : string[] =
     src.Split(split, StringSplitOptions.RemoveEmptyEntries)
 
@@ -426,14 +429,90 @@ type Day8(lines: string[]) =
         |> Seq.length
 
 
+type Day9(lines: string[]) =
+    let transform (l: string) =
+        l
+        |> Seq.mapi (fun i c ->
+            let n = char2Int c
+
+            if i % 2 = 0 then
+                Array.init n (fun _ -> $"{i / 2}")
+            else
+                Array.init n (fun _ -> "."))
+        |> Seq.concat
+        |> Seq.toArray
+
+    member this.Q1() =
+        let lines = String.Join("", lines) |> transform
+
+        let rec shift i j =
+            if i < j then
+                match lines[i] = ".", lines[j] <> "." with
+                | true, true ->
+                    lines[i] <- lines[j]
+                    lines[j] <- "."
+                    shift (i + 1) (j - 1)
+                | true, false -> shift i (j - 1)
+                | false, true -> shift (i + 1) j
+                | false, false -> shift (i + 1) (j - 1)
+            else
+                j
+
+        let r = shift 0 (lines.Length - 1)
+        let n = if lines[r] = "." then r else r + 1
+
+        lines
+        |> Array.take n
+        |> Array.mapi (fun i c -> int64 i * (int64 c))
+        |> Array.sum
+
+    member this.Q2() =
+        let transform (l: string) =
+            l
+            |> Seq.mapi (fun i c ->
+                let n = char2Int c
+
+                if i % 2 = 0 then
+                    Array.init n (fun idx -> (idx + 1, $"{i / 2}"))
+                else
+                    Array.init n (fun idx -> (n - idx, ".")))
+            |> Seq.concat
+            |> Seq.toArray
+
+        let lines = String.Join("", lines) |> transform
+
+        let rec shift i j =
+            let ni, ci = lines[i]
+            let nj, cj = lines[j]
+
+            if i < j then
+                match ci = ".", cj <> ".", ni >= nj with
+                | true, true, true ->
+                    for n in 0 .. nj - 1 do
+                        lines[i + n] <- lines[j - n]
+                        lines[j - n] <- (fst lines[j - n], ".")
+
+                    shift 0 (j - nj)
+                | true, true, false -> shift (i + ni) j
+                | true, false, _ -> shift i (j - 1)
+                | false, true, _ -> shift (i + 1) j
+                | false, false, _ -> shift (i + 1) (j - 1)
+            elif j > 0 && j - nj > 0 then
+                shift 0 (j - nj)
+
+        shift 0 (lines.Length - 1)
+
+        lines
+        |> Array.mapi (fun i (_, c) -> if c <> "." then int64 i * (int64 c) else 0L)
+        |> Array.sum
+
 type Day(lines: string[]) =
     member this.Q1() = 0
-
     member this.Q2() = 0
 
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-Day8(lines).Q1() |> (fun x -> printfn $"Q1={x}")
-Day8(lines).Q2() |> (fun x -> printfn $"Q2={x}")
+Day9(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day9(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
