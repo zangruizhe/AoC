@@ -489,15 +489,15 @@ type Day9(lines: string[]) =
                 match ci = ".", cj <> ".", ni >= nj with
                 | true, true, true ->
                     for n in 0 .. nj - 1 do
-                        lines[i + n] <- lines[j - n]
+                        lines[i + nj - n - 1] <- lines[j - n]
                         lines[j - n] <- (fst lines[j - n], ".")
 
                     shift 0 (j - nj)
                 | true, true, false -> shift (i + ni) j
-                | true, false, _ -> shift i (j - 1)
                 | false, true, _ -> shift (i + 1) j
+                | true, false, _ -> shift i (j - 1)
                 | false, false, _ -> shift (i + 1) (j - 1)
-            elif j > 0 && j - nj > 0 then
+            elif cj <> "." && j - nj > 0 then
                 shift 0 (j - nj)
 
         shift 0 (lines.Length - 1)
