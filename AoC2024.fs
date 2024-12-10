@@ -430,19 +430,19 @@ type Day8(lines: string[]) =
 
 
 type Day9(lines: string[]) =
-    let transform (l: string) =
-        l
-        |> Seq.mapi (fun i c ->
-            let n = char2Int c
-
-            if i % 2 = 0 then
-                Array.init n (fun _ -> $"{i / 2}")
-            else
-                Array.init n (fun _ -> "."))
-        |> Seq.concat
-        |> Seq.toArray
-
     member this.Q1() =
+        let transform (l: string) =
+            l
+            |> Seq.mapi (fun i c ->
+                let n = char2Int c
+
+                if i % 2 = 0 then
+                    Array.init n (fun _ -> $"{i / 2}")
+                else
+                    Array.init n (fun _ -> "."))
+            |> Seq.concat
+            |> Seq.toArray
+
         let lines = String.Join("", lines) |> transform
 
         let rec shift i j =
