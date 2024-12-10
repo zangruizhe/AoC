@@ -508,13 +508,13 @@ type Day10(lines: string[]) =
     let inBoard (i, j) : bool = 0 <= i && i < R && 0 <= j && j < C
     let lines = lines |> Array.map (fun s -> s.ToCharArray() |> Array.map char2Int)
 
-    let rec loop i j (index_9: ResizeArray<Index>) =
+    let rec loop i j =
         if lines[i][j] = 9 then
-            index_9.Add((i, j))
+            [ (i, j) ]
         else
             [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
             |> List.filter (fun (x, y) -> inBoard (i + x, j + y) && lines[i][j] + 1 = lines[i + x][j + y])
-            |> List.iter (fun (x, y) -> loop (i + x) (j + y) index_9)
+            |> List.collect (fun (x, y) -> loop (i + x) (j + y))
 
     let index_0 =
         [ for i in 0 .. R - 1 do
@@ -523,20 +523,10 @@ type Day10(lines: string[]) =
                       (i, j) ]
 
     member this.Q1() =
-        index_0
-        |> List.map (fun (i, j) ->
-            let index_9 = ResizeArray<Index>()
-            loop i j index_9
-            index_9 |> Set.ofSeq |> Set.count)
-        |> List.sum
+        index_0 |> List.sumBy (fun (i, j) -> loop i j |> Set.ofList |> Set.count)
 
     member this.Q2() =
-        index_0
-        |> List.map (fun (i, j) ->
-            let index_9 = ResizeArray<Index>()
-            loop i j index_9
-            index_9.Count)
-        |> List.sum
+        index_0 |> List.sumBy (fun (i, j) -> loop i j |> List.length)
 
 type Day(lines: string[]) =
     member this.Q1() = 0
