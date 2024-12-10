@@ -502,6 +502,46 @@ type Day9(lines: string[]) =
         |> Array.mapi (fun i (_, c) -> if c <> "." then int64 i * (int64 c) else 0L)
         |> Array.sum
 
+type Day10(lines: string[]) =
+    let R = lines.Length
+    let C = lines[0].Length
+    let inBoard (i, j) : bool = 0 <= i && i < R && 0 <= j && j < C
+    let lines = lines |> Array.map (fun s -> s.ToCharArray() |> Array.map char2Int)
+
+    let rec loop i j (index_9: ResizeArray<Index>) =
+        if lines[i][j] = 9 then
+            index_9.Add((i, j))
+        else
+            [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
+            |> List.choose (fun (x, y) ->
+                if inBoard (i + x, j + y) && lines[i][j] + 1 = lines[i + x][j + y] then
+                    Some(i + x, j + y)
+                else
+                    None)
+            |> List.iter (fun (i, j) -> loop i j index_9)
+
+    let index_0 =
+        [ for i in 0 .. R - 1 do
+              for j in 0 .. C - 1 do
+                  if lines[i][j] = 0 then
+                      (i, j) ]
+
+    member this.Q1() =
+        index_0
+        |> List.map (fun (i, j) ->
+            let index_9 = ResizeArray<Index>()
+            loop i j index_9
+            index_9 |> Set.ofSeq |> Set.count)
+        |> List.sum
+
+    member this.Q2() =
+        index_0
+        |> List.map (fun (i, j) ->
+            let index_9 = ResizeArray<Index>()
+            loop i j index_9
+            index_9.Count)
+        |> List.sum
+
 type Day(lines: string[]) =
     member this.Q1() = 0
     member this.Q2() = 0
@@ -509,6 +549,6 @@ type Day(lines: string[]) =
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-Day9(lines).Q1() |> (fun x -> printfn $"Q1={x}")
-Day9(lines).Q2() |> (fun x -> printfn $"Q2={x}")
+Day10(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day10(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
