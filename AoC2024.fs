@@ -508,13 +508,13 @@ type Day10(lines: string[]) =
     let inBoard (i, j) : bool = 0 <= i && i < R && 0 <= j && j < C
     let lines = lines |> Array.map (fun s -> s.ToCharArray() |> Array.map char2Int)
 
-    let rec loop i j =
+    let rec move i j =
         if lines[i][j] = 9 then
             [ (i, j) ]
         else
             [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
             |> List.filter (fun (x, y) -> inBoard (i + x, j + y) && lines[i][j] + 1 = lines[i + x][j + y])
-            |> List.collect (fun (x, y) -> loop (i + x) (j + y))
+            |> List.collect (fun (x, y) -> move (i + x) (j + y))
 
     let index_0 =
         [ for i in 0 .. R - 1 do
