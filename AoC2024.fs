@@ -455,15 +455,11 @@ type Day9(lines: string[]) =
                 | true, false -> shift i (j - 1)
                 | false, true -> shift (i + 1) j
                 | false, false -> shift (i + 1) (j - 1)
-            else
-                j
 
-        let r = shift 0 (lines.Length - 1)
-        let n = if lines[r] = "." then r else r + 1
+        shift 0 (lines.Length - 1)
 
         lines
-        |> Array.take n
-        |> Array.mapi (fun i c -> int64 i * (int64 c))
+        |> Array.mapi (fun i c -> if c <> "." then int64 i * (int64 c) else 0L)
         |> Array.sum
 
     member this.Q2() =
