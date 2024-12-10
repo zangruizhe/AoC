@@ -513,12 +513,8 @@ type Day10(lines: string[]) =
             index_9.Add((i, j))
         else
             [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-            |> List.choose (fun (x, y) ->
-                if inBoard (i + x, j + y) && lines[i][j] + 1 = lines[i + x][j + y] then
-                    Some(i + x, j + y)
-                else
-                    None)
-            |> List.iter (fun (i, j) -> loop i j index_9)
+            |> List.filter (fun (x, y) -> inBoard (i + x, j + y) && lines[i][j] + 1 = lines[i + x][j + y])
+            |> List.iter (fun (x, y) -> loop (i + x) (j + y) index_9)
 
     let index_0 =
         [ for i in 0 .. R - 1 do
