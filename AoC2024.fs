@@ -31,7 +31,8 @@ let int2Char (i: int) = Convert.ToChar i
 let split2Str (split: string) (src: string) : string[] =
     src.Split(split, StringSplitOptions.RemoveEmptyEntries)
 
-let split2Int (src: string) : int[] = src |> split2Str " " |> Array.map int
+let split2Int (src: string) = src |> split2Str " " |> Array.map int
+let split2Int64 (src: string) = src |> split2Str " " |> Array.map int64
 
 let split2IntBySplit (split: string) (src: string) : int[] = src |> split2Str split |> Array.map int
 
@@ -530,7 +531,7 @@ type Day10(lines: string[]) =
         index_0 |> List.sumBy (move >> List.length)
 
 type Day11(lines: string[]) =
-    let nums = lines[0] |> split2Int |> List.ofArray |> List.map int64
+    let nums = lines[0] |> split2Int64 |> List.ofArray
 
     let transform n =
         if n = 0L then
