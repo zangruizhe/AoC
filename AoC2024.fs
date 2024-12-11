@@ -533,7 +533,6 @@ type Day11(lines: string[]) =
     let nums = lines[0] |> split2Int |> List.ofArray |> List.map int64
 
     let transform n =
-
         if n = 0L then
             [ 1L ]
         elif $"{n}".Length % 2 = 0 then
