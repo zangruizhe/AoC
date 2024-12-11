@@ -533,12 +533,11 @@ type Day11(lines: string[]) =
     let nums = lines[0] |> split2Int |> List.ofArray |> List.map int64
 
     let transform n =
-        let n_str = $"{n}"
 
         if n = 0L then
             [ 1L ]
-        elif n_str.Length % 2 = 0 then
-            let div = pown 10L (n_str.Length / 2)
+        elif $"{n}".Length % 2 = 0 then
+            let div = pown 10L ($"{n}".Length / 2)
             [ n / div; n % div ]
         else
             [ n * 2024L ]
