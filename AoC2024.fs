@@ -529,13 +529,46 @@ type Day10(lines: string[]) =
     member this.Q2() =
         index_0 |> List.sumBy (move >> List.length)
 
+type Day11(lines: string[]) =
+    let nums = lines[0] |> split2Int |> List.ofArray |> List.map int64
+
+    let transform n =
+        let n_str = $"{n}"
+
+        if n = 0L then
+            [ 1L ]
+        elif n_str.Length % 2 = 0 then
+            let div = pown 10L (n_str.Length / 2)
+            [ n / div; n % div ]
+        else
+            [ n * 2024L ]
+
+    let mem = Dictionary<int * int64, int64>()
+
+    let rec loop i num =
+        let key = (i, num)
+
+        if mem.ContainsKey key then
+            mem[key]
+        else
+            let rst =
+                if i = 0 then
+                    1L
+                else
+                    num |> transform |> List.sumBy (fun n -> loop (i - 1) n)
+
+            mem[key] <- rst
+            rst
+
+    member this.Q1() = nums |> List.sumBy (loop 25)
+    member this.Q2() = nums |> List.sumBy (loop 75)
+
 type Day(lines: string[]) =
     member this.Q1() = 0
     member this.Q2() = 0
 
-
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-Day10(lines).Q1() |> (fun x -> printfn $"Q1={x}")
-Day10(lines).Q2() |> (fun x -> printfn $"Q2={x}")
+Day11(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day11(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
