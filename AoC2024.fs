@@ -545,6 +545,7 @@ type Day11(lines: string[]) =
     let mem = Dictionary<int * int64, int64>()
 
     let rec loop i num =
+        // return the nums lenght start from (i, num)
         let key = (i, num)
 
         if mem.ContainsKey key then
