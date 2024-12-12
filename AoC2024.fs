@@ -563,12 +563,51 @@ type Day11(lines: string[]) =
     member this.Q1() = nums |> List.sumBy (loop 25)
     member this.Q2() = nums |> List.sumBy (loop 75)
 
+
+type Day12(lines: string[]) =
+    let R = lines.Length
+    let C = lines[0].Length
+    let inBoard (i, j) : bool = 0 <= i && i < R && 0 <= j && j < C
+    let outOfBoard idx = not (inBoard idx)
+    let getIdxAround (i, j) =
+        [ (-1, 0); (1, 0); (0, -1); (0, 1) ] |> List.map (fun (x, y) -> (i + x, j + y))
+
+    let getPerimeter (i, j) =
+        (i, j)
+        |> getIdxAround
+        |> List.filter (fun (x, y) -> outOfBoard (x, y) || lines[x][y] <> lines[i][j])
+
+    member this.Q1() =
+        let visited = HashSet<Index>()
+
+        let rec dfs (i, j) =
+            if visited.Add(i, j) then
+                let around =
+                    getIdxAround (i, j)
+                    |> List.filter (fun (x, y) -> inBoard (x, y) && lines[x][y] = lines[i][j] && not (visited.Contains(x, y)))
+
+                (i, j) :: (around |> List.collect dfs)
+            else
+                []
+
+        [ for i in 0 .. R - 1 do
+              for j in 0 .. C - 1 do
+                  dfs (i, j) ]
+        |> List.filter (List.isEmpty >> not)
+        |> List.sumBy (fun idx_list ->
+            let perimeter =
+                idx_list |> Seq.sumBy (fun (i, j) -> getPerimeter (i, j) |> List.length)
+
+            perimeter * idx_list.Length)
+
+    member this.Q2() = 0
+
 type Day(lines: string[]) =
     member this.Q1() = 0
     member this.Q2() = 0
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-Day11(lines).Q1() |> (fun x -> printfn $"Q1={x}")
-Day11(lines).Q2() |> (fun x -> printfn $"Q2={x}")
+Day12(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day12(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
