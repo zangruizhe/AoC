@@ -569,6 +569,7 @@ type Day12(lines: string[]) =
     let C = lines[0].Length
     let inBoard (i, j) : bool = 0 <= i && i < R && 0 <= j && j < C
     let outOfBoard idx = not (inBoard idx)
+
     let getIdxAround (i, j) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ] |> List.map (fun (x, y) -> (i + x, j + y))
 
@@ -577,30 +578,52 @@ type Day12(lines: string[]) =
         |> getIdxAround
         |> List.filter (fun (x, y) -> outOfBoard (x, y) || lines[x][y] <> lines[i][j])
 
+    let visited = HashSet<Index>()
+
+    let rec getAreas (i, j) =
+        if visited.Add(i, j) then
+            let around =
+                getIdxAround (i, j)
+                |> List.filter (fun (x, y) -> inBoard (x, y) && lines[x][y] = lines[i][j] && not (visited.Contains(x, y)))
+
+            (i, j) :: (around |> List.collect getAreas)
+        else
+            []
+
     member this.Q1() =
-        let visited = HashSet<Index>()
+        [ for i in 0 .. R - 1 do
+              for j in 0 .. C - 1 do
+                  getAreas (i, j) ]
+        |> List.filter (List.isEmpty >> not)
+        |> List.sumBy (fun areas ->
+            let perimeter =
+                areas |> Seq.sumBy (fun (i, j) -> getPerimeter (i, j) |> List.length)
 
-        let rec dfs (i, j) =
-            if visited.Add(i, j) then
-                let around =
-                    getIdxAround (i, j)
-                    |> List.filter (fun (x, y) -> inBoard (x, y) && lines[x][y] = lines[i][j] && not (visited.Contains(x, y)))
+            perimeter * areas.Length)
 
-                (i, j) :: (around |> List.collect dfs)
-            else
-                []
+    member this.Q2() =
+        let getSides (areas: Index list) =
+            let areas = HashSet<Index>(areas)
+
+            let cornerNum (i, j) =
+                [ ((-1, 0), (0, 1), (-1, 1))
+                  ((-1, 0), (0, -1), (-1, -1))
+                  ((1, 0), (0, 1), (1, 1))
+                  ((1, 0), (0, -1), (1, -1)) ]
+                |> List.map (fun (p1, p2, p3) -> (i + fst p1, j + snd p1), (i + fst p2, j + snd p2), (i + fst p3, j + snd p3))
+                |> List.filter (fun (p1, p2, p3) ->
+                    let outer = [ p1; p2 ] |> List.forall (areas.Contains >> not)
+                    let inner = [ p1; p2 ] |> List.forall areas.Contains && not (areas.Contains p3)
+                    outer || inner)
+                |> List.length
+
+            areas |> Seq.sumBy cornerNum
 
         [ for i in 0 .. R - 1 do
               for j in 0 .. C - 1 do
-                  dfs (i, j) ]
+                  getAreas (i, j) ]
         |> List.filter (List.isEmpty >> not)
-        |> List.sumBy (fun idx_list ->
-            let perimeter =
-                idx_list |> Seq.sumBy (fun (i, j) -> getPerimeter (i, j) |> List.length)
-
-            perimeter * idx_list.Length)
-
-    member this.Q2() = 0
+        |> List.sumBy (fun areas -> (getSides areas) * areas.Length)
 
 type Day(lines: string[]) =
     member this.Q1() = 0
