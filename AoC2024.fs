@@ -573,10 +573,6 @@ type Day12(lines: string[]) =
     let getIdxAround (i, j) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ] |> List.map (fun (x, y) -> (i + x, j + y))
 
-    let getPerimeter (i, j) =
-        (i, j)
-        |> getIdxAround
-        |> List.filter (fun (x, y) -> outOfBoard (x, y) || lines[x][y] <> lines[i][j])
 
     let visited = HashSet<Index>()
 
@@ -591,6 +587,11 @@ type Day12(lines: string[]) =
             []
 
     member this.Q1() =
+        let getPerimeter (i, j) =
+            (i, j)
+            |> getIdxAround
+            |> List.filter (fun (x, y) -> outOfBoard (x, y) || lines[x][y] <> lines[i][j])
+
         [ for i in 0 .. R - 1 do
               for j in 0 .. C - 1 do
                   getAreas (i, j) ]
