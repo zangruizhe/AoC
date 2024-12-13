@@ -43,17 +43,20 @@ let splitByReg (patten: string) (src: string) =
 let split2IntByReg (patten: string) (src: string) =
     let rst =
         splitByReg patten src
-        |> Array.map (fun g -> g |> Seq.skip 1 |> Seq.map (fun g -> int64 g.Value) |> Seq.toArray)
+        |> Array.map (fun g -> g |> Seq.skip 1 |> Seq.map (fun g -> int g.Value) |> Seq.toArray)
 
     rst
+
+let split2Int64ByReg (patten: string) (src: string) =
+    split2IntByReg patten src |> Array.map (Array.map int64)
 
 module Day1 =
     let l = ResizeArray<int>()
     let r = ResizeArray<int>()
 
-    let init (lines) =
+    let init lines =
         lines
-        |> Array.map (split2Int)
+        |> Array.map split2Int
         |> Array.iter (fun n ->
             l.Add(n[0])
             r.Add(n[1]))
@@ -331,7 +334,7 @@ type Day7(lines: string[]) =
 
 
         lines
-        |> Array.map (split2IntByReg @"(\d+)" >> Array.concat)
+        |> Array.map (split2Int64ByReg @"(\d+)" >> Array.concat)
         |> Array.filter canEvaluated
         |> Array.sumBy (fun nums -> nums[0])
 
@@ -352,7 +355,7 @@ type Day7(lines: string[]) =
 
 
         lines
-        |> Array.map (split2IntByReg @"(\d+)" >> Array.concat)
+        |> Array.map (split2Int64ByReg @"(\d+)" >> Array.concat)
         |> Array.filter canEvaluated
         |> Array.sumBy (fun nums -> nums[0])
 
@@ -626,12 +629,47 @@ type Day12(lines: string[]) =
         |> List.filter (List.isEmpty >> not)
         |> List.sumBy (fun areas -> (getSides areas) * areas.Length)
 
+type Day13(lines: string[]) =
+    let lines =
+        String.Join("", lines)
+        |> split2Int64ByReg @"(\d+)"
+        |> Array.concat
+        |> fun nums -> nums |> Array.splitInto (nums.Length / 6)
+
+    let getMinCost (ai, aj) (bi, bj) (ti, tj) =
+        // a * ai + b * bi = ti
+        // a * aj + b * bj = tj
+        // solve a, b
+        // because for every a, b, t only have one or zero int solution
+        let d = ai * bj - aj * bi
+        let a = (ti * bj - tj * bi) / d
+        let b = (tj * ai - ti * aj) / d
+
+        if a * ai + b * bi = ti && a * aj + b * bj = tj then
+            Some(a * 3L + b)
+        else
+            None
+
+    member this.Q1() =
+        lines
+        |> Array.toList
+        |> List.choose (fun nums -> getMinCost (nums[0], nums[1]) (nums[2], nums[3]) (nums[4], nums[5]))
+        |> List.sum
+
+    member this.Q2() =
+        lines
+        |> Array.toList
+        |> List.choose (fun nums ->
+            getMinCost (nums[0], nums[1]) (nums[2], nums[3]) (10000000000000L + nums[4], 10000000000000L + nums[5]))
+        |> List.sum
+
+
 type Day(lines: string[]) =
     member this.Q1() = 0
     member this.Q2() = 0
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-Day12(lines).Q1() |> (fun x -> printfn $"Q1={x}")
-Day12(lines).Q2() |> (fun x -> printfn $"Q2={x}")
+Day13(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day13(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
