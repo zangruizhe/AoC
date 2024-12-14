@@ -1,6 +1,6 @@
 ﻿open System
-open System.Collections.Generic
 open System.IO
+open System.Collections.Generic
 open System.Text.RegularExpressions
 
 type Index = int * int
@@ -664,12 +664,59 @@ type Day13(lines: string[]) =
         |> List.sum
 
 
+type Day14(lines: string[]) =
+    let lines = lines |> Array.map (split2IntByReg @"(-?\d+)" >> Array.concat)
+    let R = 103
+    let C = 101
+    // let R = 7
+    // let C = 11
+
+    let move (pi, pj) (vi, vj) sec =
+        let i = (pi + vi * sec) % R |> fun i -> if i < 0 then R + i else i
+        let j = (pj + vj * sec) % C |> fun i -> if i < 0 then C + i else i
+        (i, j)
+
+
+    let robots =
+        lines
+        |> Array.map (fun nums ->
+            let p = (nums[1], nums[0])
+            let v = (nums[3], nums[2])
+            p, v)
+
+    member this.Q1() =
+
+        let getArea (i, j) =
+            if i < R / 2 && j < C / 2 then 1
+            elif i < R / 2 && j > C / 2 then 2
+            elif i > R / 2 && j < C / 2 then 3
+            elif i > R / 2 && j > C / 2 then 4
+            else 0
+
+        robots
+        |> Array.map (fun (p, v) -> move p v 100)
+        |> Array.groupBy (getArea)
+        |> Array.filter (fun (n, _) -> n <> 0)
+        |> Array.fold (fun s (_, nums) -> s * int64 nums.Length) 1L
+
+    member this.Q2() =
+        let rec nextMove secs =
+            let next_pos = robots |> Array.map (fun (p, v) -> move p v secs)
+
+            if Set.ofArray(next_pos).Count = robots.Length then
+                secs
+            else
+                nextMove (secs + 1)
+
+        nextMove 0
+
+
 type Day(lines: string[]) =
     member this.Q1() = 0
     member this.Q2() = 0
 
 let start = DateTime.Now
 let lines = File.ReadAllLines "test.in"
-Day13(lines).Q1() |> (fun x -> printfn $"Q1={x}")
-Day13(lines).Q2() |> (fun x -> printfn $"Q2={x}")
+Day14(lines).Q1() |> (fun x -> printfn $"Q1={x}")
+Day14(lines).Q2() |> (fun x -> printfn $"Q2={x}")
 printfn $"Execution time: %A{(DateTime.Now - start).TotalSeconds} seconds"
